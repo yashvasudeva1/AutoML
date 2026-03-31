@@ -2,7 +2,11 @@
    AutoML — Frontend Application Logic
    ═══════════════════════════════════════════════ */
 
-const API_BASE = "http://localhost:5000";
+const API_BASE = (() => {
+  const host = window.location.hostname;
+  const isLocal = host === "localhost" || host === "127.0.0.1";
+  return isLocal ? "http://localhost:5000" : window.location.origin;
+})();
 const API = `${API_BASE}/api`;
 
 // ── State ──────────────────────────────────────
