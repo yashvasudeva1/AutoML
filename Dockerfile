@@ -10,6 +10,6 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 
 COPY . /app
 
-EXPOSE 5000
+EXPOSE 10000
 
-CMD ["gunicorn", "--chdir", "api/python_backend", "--bind", "0.0.0.0:5000", "server:app"]
+CMD ["sh", "-c", "gunicorn --chdir api/python_backend --bind 0.0.0.0:${PORT:-10000} server:app"]
