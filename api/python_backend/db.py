@@ -12,7 +12,7 @@ _POOL = None
 
 
 def _normalized_database_url() -> str:
-    raw = DATABASE_URL
+    raw = DATABASE_URL.strip()
     if raw.startswith("postgres://"):
         raw = "postgresql://" + raw[len("postgres://"):]
 
@@ -21,7 +21,8 @@ def _normalized_database_url() -> str:
     query_pairs = parse_qsl(parsed.query, keep_blank_values=True)
     allowed_pairs = [(k, v) for (k, v) in query_pairs if k.lower() != "pgbouncer"]
     clean_query = urlencode(allowed_pairs)
-    return urlunparse(parsed._replace(query=clean_query))
+    # Drop any accidental URL fragment (e.g. copied inline comments after '#').
+    return urlunparse(parsed._replace(query=clean_query, fragment=""))
 
 
 def _get_pg_pool():
