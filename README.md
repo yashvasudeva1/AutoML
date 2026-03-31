@@ -1,234 +1,108 @@
-# Dataset Cleaner and Analyzer
+# Dataset Cleaner & Analyzer
 
-A full-stack data intelligence application for CSV datasets.
+A full-stack web app for cleaning, analyzing, and modeling CSV datasets — built with Flask + vanilla JS.
 
-This project provides:
-- User authentication (email/password + Google login)
-- Dataset upload, profiling, cleaning, and analysis
-- Model recommendation and training (baseline + custom)
-- Model diagnostics (fit checks, metrics, train-vs-test, model details)
-- Dataset-aware AI chatbot (Gemini)
-- Rich PDF report generation (section reports + combined report)
+Upload a CSV, let it profile and clean your data, train a model, and export a PDF report. There's also an AI chatbot that actually knows what's in your dataset.
 
-## 1. Tech Stack
+---
 
-Backend:
-- Python 3.10+
-- Flask
-- SQLite (metadata + persisted dataset blobs)
-- pandas, numpy, scikit-learn
-- JWT auth (PyJWT)
-- Google token verification (google-auth)
+## What it does
 
-Frontend:
-- Vanilla HTML/CSS/JavaScript
-- Plotly.js for charts
-- jsPDF + AutoTable for report generation
-- Google Identity Services
+- Upload any CSV and get an instant data quality summary
+- Auto-detects column types and flags issues
+- Clean your data (missing values, outliers, etc.) and preview the result
+- Distribution plots and correlation diagnostics via Plotly
+- Pick a target column, get model recommendations, train baseline or custom models
+- Download trained pipelines
+- Generate PDF reports — per section or one combined report
+- Dataset-aware chatbot (powered by Gemini) that answers questions about your actual data
+- Auth via email/password or Google login, JWT-protected throughout
 
-## 2. Current Project Structure
+---
 
-```text
+## Stack
+
+**Backend:** Python 3.10+, Flask, SQLite (dev) / PostgreSQL (prod), pandas, numpy, scikit-learn, PyJWT, google-auth
+
+**Frontend:** Plain HTML/CSS/JS, Plotly.js, jsPDF + AutoTable, Google Identity Services
+
+---
+
+## Project layout
+
+```
 Dataset Cleaner and Analyzer/
 ├─ api/
 │  └─ python_backend/
-│     ├─ server.py                 # Main Flask server + API endpoints
-│     ├─ db.py                     # SQLite schema and DB operations
-│     ├─ baseline_model_json.py    # Baseline/custom training pipelines
-│     ├─ app.db                    # SQLite database file (local, ignored)
-│     └─ __pycache__/
+│     ├─ server.py                 # Flask server and all API routes
+│     ├─ db.py                     # DB schema and helpers
+│     ├─ baseline_model_json.py    # Training pipelines
+│     └─ app.db                    # Local SQLite file (gitignored)
 ├─ frontend/
-│  ├─ index.html                   # App markup
-│  ├─ styles.css                   # App styles
-│  ├─ app.js                       # Frontend app logic
-│  └─ assets/
-├─ uploads/                        # Optional local upload artifacts (ignored)
-├─ column_identification.py        # Column typing utilities
-├─ data_analysis.py                # Analysis helpers
-├─ models.py                       # Model recommendation logic
-├─ utils.py                        # Cleaning + utility functions
-├─ Not Used/                       # Archived legacy files
-├─ .env.example                    # Environment template
-├─ .gitignore
+│  ├─ index.html
+│  ├─ styles.css
+│  └─ app.js
+├─ column_identification.py
+├─ data_analysis.py
+├─ models.py
+├─ utils.py
+├─ .env.example
 ├─ requirements.txt
 ├─ Dockerfile
-├─ .dockerignore
 └─ README.md
 ```
 
-## 3. Features
+---
 
-### 3.1 Dataset Workflow
-- Upload CSV
-- Auto-detect column types
-- Data quality summary
-- Cleaning operations and cleaned preview
-- Distribution analytics + correlation diagnostics
-
-### 3.2 Modeling Workflow
-- Select target column
-- Auto model recommendations by task type
-- Train baseline model
-- Train custom model (model/scaler/test split/random state)
-- Download trained pipeline
-- View model details:
-  - Intercept
-  - Coefficients / feature importances
-  - Compact estimator params
-  - Model contribution graph
-
-### 3.3 Reports
-- Overview report
-- Analysis report
-- Models report
-- Combined profile report (overview + analysis + graphs + model sections when available)
-
-### 3.4 Authentication
-- Email/password login + signup
-- Google login/signup via Google Identity Services
-- JWT-protected API endpoints
-
-### 3.5 AI Chatbot
-- Dataset-context grounded Q&A
-- Gemini API integration via backend endpoint
-
-## 4. Environment Variables
-
-Create a local `.env` file from `.env.example`.
-
-Required:
-- `APP_SECRET_KEY`: Secret key for JWT signing
-- `GOOGLE_CLIENT_ID`: Google OAuth client ID
-- `GEMINI_API_KEY`: Gemini API key
-
-Optional:
-- `PORT`: Server port (default 5000)
-- `DATABASE_URL`: PostgreSQL connection string (if unset, app falls back to local SQLite)
-- `CORS_ALLOWED_ORIGINS`: Comma-separated allowed browser origins for API calls
-
-Example:
-- `CORS_ALLOWED_ORIGINS=https://your-frontend-domain.com,https://www.your-frontend-domain.com`
-
-## 5. Local Development Setup
-
-### 5.1 Create and Activate Virtual Environment
-Windows PowerShell:
-
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-```
-
-macOS/Linux:
+## Getting started locally
 
 ```bash
+# 1. Create and activate a virtual environment
 python3 -m venv .venv
-source .venv/bin/activate
-```
+source .venv/bin/activate        # Windows: .\.venv\Scripts\Activate.ps1
 
-### 5.2 Install Dependencies
-
-```bash
+# 2. Install dependencies
 pip install -r requirements.txt
-```
 
-### 5.3 Configure Environment
-
-```bash
+# 3. Set up your environment
 cp .env.example .env
-```
+# Edit .env with your actual keys
 
-Then edit `.env` with your credentials.
-
-### 5.4 Run the Backend
-
-```bash
+# 4. Run the server
 python api/python_backend/server.py
 ```
 
-App URL:
-- `http://127.0.0.1:5000`
+Open `http://127.0.0.1:5000`. The Flask server handles both the API and frontend static files.
 
-The Flask server serves both API and frontend static files.
+---
 
-## 6. Security Checklist Before GitHub Push
+## Environment variables
 
-- Never commit `.env`
-- Rotate any API keys that were previously hardcoded/exposed
-- Keep database files (`app.db`) out of git
-- Keep local uploads and temporary artifacts out of git
+| Variable | Required | Notes |
+|---|---|---|
+| `APP_SECRET_KEY` | Yes | Used for JWT signing |
+| `GOOGLE_CLIENT_ID` | Yes | Google OAuth client ID |
+| `GEMINI_API_KEY` | Yes | Powers the chatbot |
+| `PORT` | No | Defaults to 5000 |
+| `DATABASE_URL` | No | PostgreSQL URL — falls back to SQLite if unset |
+| `CORS_ALLOWED_ORIGINS` | No | Comma-separated list of allowed origins |
 
-## 7. API Surface (High-Level)
+---
 
-Auth:
-- `POST /api/auth/signup`
-- `POST /api/auth/login`
-- `POST /api/auth/google`
-- `GET /api/auth/google-config`
-- `GET /api/auth/me`
-
-User/Profile:
-- `PUT /api/user/profile`
-- `GET /api/user/datasets`
-
-Dataset:
-- `POST /api/dataset/upload`
-- `GET /api/dataset/<id>/resume`
-- `GET /api/dataset/<id>/overview`
-- `GET /api/dataset/<id>/analysis`
-- `GET /api/dataset/<id>/distribution`
-- `POST /api/dataset/<id>/clean`
-- `GET /api/dataset/<id>/download`
-
-Models:
-- `GET /api/dataset/<id>/models`
-- `POST /api/dataset/<id>/models/baseline`
-- `GET /api/dataset/<id>/models/baseline/download`
-- `POST /api/dataset/<id>/models/custom`
-- `GET /api/dataset/<id>/models/custom/download`
-
-Chat:
-- `POST /api/dataset/<id>/chat`
-
-## 8. Recommended Deployment Strategy
-
-### Best Platform for This Project
-For this architecture (Flask app serving frontend + API + report generation), the best practical path is:
-
-- **Render Web Service** for app hosting
-- **Managed Postgres** (Render/Supabase/Neon) for production database
-- **Object storage** (S3/R2/Supabase Storage) for large dataset artifacts if needed
-
-Why this is best:
-- Very simple CI/CD from GitHub
-- Easy environment variable management
-- Good Python support
-- Predictable deployment workflow for solo/small team projects
-
-Important note:
-- This project currently uses SQLite. SQLite is fine for local/dev, but for production use Postgres for reliability and concurrency.
-
-## 9. Docker Deployment
-
-Build:
+## Docker
 
 ```bash
 docker build -t dataset-cleaner-analyzer .
-```
-
-Run:
-
-```bash
 docker run -p 5000:5000 --env-file .env dataset-cleaner-analyzer
 ```
 
-## 9.1 Apply PostgreSQL (Scalable Setup)
+---
 
-The backend now supports both:
-- SQLite (default when `DATABASE_URL` is not set)
-- PostgreSQL (enabled automatically when `DATABASE_URL` is set)
+## PostgreSQL setup
 
-### Quick local Postgres setup (Docker)
+SQLite is fine for local dev. For anything beyond that, point `DATABASE_URL` at a Postgres instance and the app will use it automatically — tables are created on startup.
+
+**Quick local Postgres via Docker:**
 
 ```bash
 docker run --name dca-postgres \
@@ -238,66 +112,94 @@ docker run --name dca-postgres \
   -p 5432:5432 -d postgres:16
 ```
 
-Set in `.env`:
-
-```env
+Then in `.env`:
+```
 DATABASE_URL=postgresql://dca_user:dca_pass@localhost:5432/dca_db
 ```
 
-Then restart backend. Tables are auto-created at startup.
+For production, use a managed provider (Render Postgres, Supabase, Neon, RDS) and plug in the connection URL.
 
-### Production Postgres setup
+**Migrating existing SQLite data:** export rows from `users` and `datasets`, insert into Postgres preserving `id` fields, verify counts before switching over.
 
-1. Create a managed Postgres database (Render Postgres, Supabase, Neon, or RDS).
-2. Copy the provider connection URL into `DATABASE_URL`.
-3. Redeploy the backend service.
-4. Verify user signup/login and dataset upload paths.
+---
 
-### Data migration from SQLite to Postgres
+## Deploying on Render
 
-If you have existing local SQLite data, migrate users/datasets once via script or SQL copy process.
-Suggested approach:
-- Export rows from SQLite `users` and `datasets` tables.
-- Insert into Postgres preserving `id` fields.
-- Validate row counts and sampled records before cutover.
+1. Push to GitHub
+2. Create a new Web Service and connect your repo
+3. Set build command: `pip install -r requirements.txt`
+4. Set start command: `gunicorn --chdir api/python_backend server:app`
+5. Add your env variables from `.env.example`
+6. Deploy
 
-## 10. Deploying on Render (Step-by-Step)
+Render works well for this setup — simple CI/CD from GitHub, straightforward env management, good Python support. Pair it with Render Postgres or Supabase for the database.
 
-1. Push repo to GitHub.
-2. Create a new Web Service in Render.
-3. Connect your repository.
-4. Set:
-   - Build command: `pip install -r requirements.txt`
-   - Start command: `gunicorn --chdir api/python_backend server:app`
-5. Add environment variables from `.env.example`.
-6. Deploy and open the public URL.
+---
 
-## 11. Recommended Production Improvements
+## API routes
 
-- Migrate SQLite to Postgres
-- Move dataset blobs to object storage
-- Add rate limiting for auth and chat endpoints
-- Add request logging and error monitoring (Sentry/OpenTelemetry)
-- Add automated tests (pytest + Playwright)
-- Add CI pipeline (lint, tests, build)
+**Auth**
+- `POST /api/auth/signup`
+- `POST /api/auth/login`
+- `POST /api/auth/google`
+- `GET /api/auth/google-config`
+- `GET /api/auth/me`
 
-## 12. Troubleshooting
+**User**
+- `PUT /api/user/profile`
+- `GET /api/user/datasets`
 
-### Server starts but login fails
-- Verify `APP_SECRET_KEY` is set and stable
-- Verify DB file permissions
+**Dataset**
+- `POST /api/dataset/upload`
+- `GET /api/dataset/<id>/resume`
+- `GET /api/dataset/<id>/overview`
+- `GET /api/dataset/<id>/analysis`
+- `GET /api/dataset/<id>/distribution`
+- `POST /api/dataset/<id>/clean`
+- `GET /api/dataset/<id>/download`
 
-### Google auth button visible but fails
-- Ensure `GOOGLE_CLIENT_ID` is correct
-- Add deployed domain/origin in Google Cloud OAuth settings
+**Models**
+- `GET /api/dataset/<id>/models`
+- `POST /api/dataset/<id>/models/baseline`
+- `GET /api/dataset/<id>/models/baseline/download`
+- `POST /api/dataset/<id>/models/custom`
+- `GET /api/dataset/<id>/models/custom/download`
 
-### Chatbot returns config error
-- Ensure `GEMINI_API_KEY` is set in environment
+**Chat**
+- `POST /api/dataset/<id>/chat`
 
-### Combined reports missing model sections
-- Train baseline/custom models for the selected dataset in the same browser session
-- Use the same dataset ID before generating combined report
+---
 
-## 13. License
+## Before pushing to GitHub
 
-Add your preferred license file (MIT recommended) before publishing publicly.
+- Don't commit `.env` — it's in `.gitignore` but double-check
+- Rotate any API keys that were ever hardcoded anywhere
+- Keep `app.db` and anything in `uploads/` out of git
+
+---
+
+## Known rough edges / things to improve
+
+- Rate limiting on auth and chat endpoints would be good to add
+- The combined PDF report only includes model sections if you've trained models in the same session — this is a known quirk
+- No automated tests yet (pytest + Playwright would be the move)
+- Logging and error tracking (Sentry) would help in production
+- Moving dataset blobs to object storage (S3/R2) would be worth it at any real scale
+
+---
+
+## Troubleshooting
+
+**Login not working** — check that `APP_SECRET_KEY` is set and hasn't changed between restarts. Also verify DB file permissions.
+
+**Google login fails** — make sure your deployed origin is listed in Google Cloud OAuth settings, and `GOOGLE_CLIENT_ID` matches.
+
+**Chatbot errors** — almost always a missing or invalid `GEMINI_API_KEY`.
+
+**Combined report missing model sections** — train your baseline or custom model first, and make sure you're on the same dataset ID when generating the report.
+
+---
+
+## License
+
+MIT recommended — add a `LICENSE` file before going public.
