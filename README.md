@@ -199,7 +199,3 @@ Render works well for this setup — simple CI/CD from GitHub, straightforward e
 **Combined report missing model sections** — train your baseline or custom model first, and make sure you're on the same dataset ID when generating the report.
 
 ---
-
-## License
-
-MIT recommended — add a `LICENSE` file before going public.
