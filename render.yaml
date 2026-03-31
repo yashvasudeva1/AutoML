@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: automl-dataset-cleaner
+    env: python
+    plan: free
+    rootDir: .
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --chdir api/python_backend --bind 0.0.0.0:$PORT server:app
+    healthCheckPath: /api/auth/google-config
+    envVars:
+      - key: FLASK_DEBUG
+        value: "false"
+      - key: FLASK_HOST
+        value: 0.0.0.0
+      - key: APP_SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false

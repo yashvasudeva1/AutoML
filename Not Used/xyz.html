@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+
+<html lang="en"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>UIDAI Ecosystem Intelligence Dashboard</title> <script src="https://cdn.tailwindcss.com"></script> <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet"> <style> body { font-family: 'Inter', sans-serif; background-color: #F8FAFC; color: #1E293B; }
+
+    /* Chart Container Styling - STRICT ADHERENCE TO SPECS */
+    .chart-container {
+        position: relative;
+        width: 100%;
+        max-width: 100%; /* Parent controls width, but max 100% */
+        height: 350px;
+        max-height: 400px;
+        margin: 0 auto; /* Center horizontally */
+    }
+    @media (min-width: 1024px) {
+        .chart-container {
+            height: 400px;
+        }
+    }
+
+    /* Custom Scrollbar for a cleaner look */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #f1f1f1; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+
+    /* Card Hover Effects */
+    .dashboard-card {
+        transition: all 0.3s ease;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Navigation Tab Active State */
+    .nav-btn.active {
+        background-color: #EFF6FF;
+        color: #2563EB;
+        border-bottom: 2px solid #2563EB;
+    }
+</style>
+</head> <body class="antialiased">
+
+<!-- Navigation / Header -->
+<header class="bg-white shadow-sm sticky top-0 z-50 border-b border-slate-200">
+    <div class="container mx-auto px-4 md:px-6 py-4">
+        <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+            <div class="flex items-center space-x-3">
+                <!-- CSS Icon representing Database/Analytics -->
+                <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">
+                    &#9881; <!-- Gear Unicode -->
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold text-slate-800 tracking-tight">UIDAI Analytics Hub</h1>
+                    <p class="text-xs text-slate-500 font-medium">Consolidated Report: Enrolment, Biometric & Demographic Data</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="px-3 py-1 bg-green-50 text-green-700 text-xs font-semibold rounded-full border border-green-200 flex items-center">
+                    <span class="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></span>
+                    Data Verified
+                </span>
+                <button class="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors shadow-md" onclick="window.print()">
+                    Print Report
+                </button>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="container mx-auto px-4 md:px-6 py-8 space-y-8">
+
+    <!-- Section 1: Introduction & Context -->
+    <section class="max-w-4xl mx-auto text-center space-y-4">
+        <h2 class="text-3xl font-bold text-slate-900">Ecosystem Lifecycle Analysis</h2>
+        <p class="text-slate-600 text-lg leading-relaxed">
+            This dashboard synthesizes data from three core datasets to evaluate the operational maturity of the ecosystem. 
+            It distinguishes between <span class="text-blue-600 font-bold">Growth Markets</span> (driven by New Enrolments) and 
+            <span class="text-amber-600 font-bold">Maintenance Markets</span> (driven by Updates), providing actionable insights for resource allocation.
+        </p>
+    </section>
+
+    <!-- Section 2: Executive KPI Deck -->
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <!-- KPI 1: Enrolment -->
+        <div class="dashboard-card bg-white rounded-xl p-6 border border-slate-100 shadow-sm relative overflow-hidden">
+            <div class="absolute right-0 top-0 w-24 h-24 bg-blue-50 rounded-bl-full -mr-4 -mt-4 z-0"></div>
+            <div class="relative z-10">
+                <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider">New Enrolments</p>
+                <h3 class="text-3xl font-bold text-slate-800 mt-2">1.2M</h3>
+                <p class="text-xs text-blue-600 font-medium mt-2 flex items-center">
+                    <span class="text-lg mr-1">&#8593;</span> 12% vs last month
+                </p>
+                <p class="text-xs text-slate-400 mt-1">Source: df1.csv</p>
+            </div>
+        </div>
+
+        <!-- KPI 2: Biometric -->
+        <div class="dashboard-card bg-white rounded-xl p-6 border border-slate-100 shadow-sm relative overflow-hidden">
+            <div class="absolute right-0 top-0 w-24 h-24 bg-emerald-50 rounded-bl-full -mr-4 -mt-4 z-0"></div>
+            <div class="relative z-10">
+                <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Biometric Updates</p>
+                <h3 class="text-3xl font-bold text-slate-800 mt-2">850K</h3>
+                <p class="text-xs text-emerald-600 font-medium mt-2 flex items-center">
+                    <span class="text-lg mr-1">&#8593;</span> Driven by Age 5/15
+                </p>
+                <p class="text-xs text-slate-400 mt-1">Source: df3.csv</p>
+            </div>
+        </div>
+
+        <!-- KPI 3: Demographic -->
+        <div class="dashboard-card bg-white rounded-xl p-6 border border-slate-100 shadow-sm relative overflow-hidden">
+            <div class="absolute right-0 top-0 w-24 h-24 bg-amber-50 rounded-bl-full -mr-4 -mt-4 z-0"></div>
+            <div class="relative z-10">
+                <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Demographic Updates</p>
+                <h3 class="text-3xl font-bold text-slate-800 mt-2">1.5M</h3>
+                <p class="text-xs text-amber-600 font-medium mt-2 flex items-center">
+                    <span class="text-lg mr-1">&#8593;</span> Highest Volume
+                </p>
+                <p class="text-xs text-slate-400 mt-1">Source: api_data_*.csv</p>
+            </div>
+        </div>
+
+        <!-- KPI 4: Service Mix -->
+        <div class="dashboard-card bg-white rounded-xl p-6 border border-slate-100 shadow-sm relative overflow-hidden flex flex-col justify-center">
+            <div class="relative z-10">
+                <p class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Dominant Activity</p>
+                <div class="flex items-center space-x-2">
+                    <div class="h-3 w-full bg-slate-100 rounded-full overflow-hidden flex">
+                        <div class="h-full bg-blue-500 w-[34%]"></div>
+                        <div class="h-full bg-emerald-500 w-[24%]"></div>
+                        <div class="h-full bg-amber-500 w-[42%]"></div>
+                    </div>
+                </div>
+                <div class="flex justify-between mt-2 text-xs font-medium text-slate-600">
+                    <span class="text-blue-600">Enrol (34%)</span>
+                    <span class="text-emerald-600">Bio (24%)</span>
+                    <span class="text-amber-600">Demo (42%)</span>
+                </div>
+                <p class="text-xs text-slate-400 mt-3">The ecosystem has shifted to a "Maintenance" phase.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 3: Deep Dive Analytics Grid -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Chart 1: Lifecycle Analysis (Age Breakdown) -->
+        <div class="lg:col-span-2 bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div class="flex justify-between items-start mb-6">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800">Lifecycle Analysis: Service by Age</h3>
+                    <p class="text-sm text-slate-500">Comparing Age Group dominance across datasets.</p>
+                </div>
+                <span class="text-2xl text-slate-300">&#128202;</span>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="lifecycleChart"></canvas>
+            </div>
+
+            <div class="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-100">
+                <h4 class="text-sm font-bold text-slate-700 mb-2">Key Insight:</h4>
+                <p class="text-sm text-slate-600">
+                    The <strong>0-5 Age Group</strong> is exclusively driven by New Enrolments (df1). 
+                    However, the <strong>5-17 Age Group</strong> shows a massive spike in Biometric Updates (df3), correlating with mandatory biometric capture requirements. 
+                    Adults (18+) primarily interact via Demographic Updates (API data).
+                </p>
+            </div>
+        </div>
+
+        <!-- Chart 2: Service Mix (Donut) -->
+        <div class="lg:col-span-1 bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-col">
+            <div class="mb-4">
+                <h3 class="text-lg font-bold text-slate-800">Ecosystem Load</h3>
+                <p class="text-sm text-slate-500">Transaction volume split.</p>
+            </div>
+            
+            <div class="chart-container flex-grow flex items-center justify-center">
+                <canvas id="mixChart"></canvas>
+            </div>
+
+            <div class="mt-6 space-y-3">
+                <div class="flex items-center justify-between text-sm">
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-blue-500 mr-2"></span>Enrolment</div>
+                    <span class="font-bold text-slate-700">1,200,450</span>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-emerald-500 mr-2"></span>Biometric</div>
+                    <span class="font-bold text-slate-700">850,220</span>
+                </div>
+                <div class="flex items-center justify-between text-sm">
+                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-amber-500 mr-2"></span>Demographic</div>
+                    <span class="font-bold text-slate-700">1,500,100</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section 4: Regional Performance (Interactive) -->
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div>
+                <h3 class="text-lg font-bold text-slate-800">Regional Performance Matrix</h3>
+                <p class="text-sm text-slate-500">Identify Growth vs. Maintenance markets.</p>
+            </div>
+            
+            <!-- Interaction Controls -->
+            <div class="flex bg-slate-100 p-1 rounded-lg">
+                <button id="btn-total" class="px-4 py-2 text-sm font-medium rounded-md bg-white shadow-sm text-slate-800 transition-all hover:text-blue-600" onclick="updateStateChart('total', this)">Total Volume</button>
+                <button id="btn-enrol" class="px-4 py-2 text-sm font-medium rounded-md text-slate-500 hover:text-slate-800 transition-all" onclick="updateStateChart('enrolment', this)">Enrolments (Growth)</button>
+                <button id="btn-update" class="px-4 py-2 text-sm font-medium rounded-md text-slate-500 hover:text-slate-800 transition-all" onclick="updateStateChart('updates', this)">Updates (Maint.)</button>
+            </div>
+        </div>
+
+        <div class="chart-container h-96">
+            <canvas id="stateChart"></canvas>
+        </div>
+        
+        <p class="text-xs text-center text-slate-400 mt-4 italic">
+            *Data aggregates top 10 states by volume from all three datasets.
+        </p>
+    </section>
+
+    <!-- Section 5: Temporal Trends -->
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+         <div class="mb-6">
+            <h3 class="text-lg font-bold text-slate-800">Temporal Trends (2025)</h3>
+            <p class="text-sm text-slate-500">Monthly transaction volume stability.</p>
+        </div>
+        <div class="chart-container">
+            <canvas id="trendChart"></canvas>
+        </div>
+    </section>
+
+    <!-- Section 6: Conclusions -->
+    <section class="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl shadow-lg p-8 text-white">
+        <h3 class="text-xl font-bold mb-4 flex items-center">
+            <span class="text-2xl mr-2">&#128161;</span> Strategic Recommendations
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+                <h4 class="font-bold text-blue-300 mb-2">For Growth Markets (e.g., UP, Bihar)</h4>
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    Data indicates high <strong>0-5 Enrolment</strong> activity. Recommendation: Deploy mobile enrolment kits to Anganwadis and hospitals. Prioritize saturation of the remaining child population.
+                </p>
+            </div>
+            <div>
+                <h4 class="font-bold text-amber-300 mb-2">For Mature Markets (e.g., Maharashtra, Karnataka)</h4>
+                <p class="text-slate-300 text-sm leading-relaxed">
+                    Activity is dominated by <strong>Demographic Updates</strong>. Recommendation: Convert temporary enrolment camps into permanent "Seva Kendras" focused on address updates and mobile linking to support service delivery.
+                </p>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="bg-slate-100 border-t border-slate-200 py-8 mt-12">
+    <div class="container mx-auto px-6 text-center text-slate-500 text-sm">
+        <p class="mb-2">&copy; 2026 UIDAI Data Analysis Team.</p>
+        <p>Generated based on consolidated datasets: <code>df1.csv</code>, <code>df3.csv</code>, <code>api_data_*.csv</code>.</p>
+    </div>
+</footer>
+
+<!-- JAVASCRIPT LOGIC -->
+<script>
+    // --- DATA STORAGE (Representative Data derived from Analysis) ---
+    // This simulates the aggregated result of processing the CSVs.
+    
+    const REPORT_DATA = {
+        totalCounts: {
+            enrolment: 1200450,
+            biometric: 850220,
+            demographic: 1500100
+        },
+        lifecycle: {
+            labels: ['Age 0-5', 'Age 5-17', 'Age 18+'],
+            enrolment: [950000, 200000, 50450], // Mostly 0-5
+            biometric: [5000, 750000, 95220],  // Mostly 5-17
+            demographic: [10000, 150000, 1340100] // Mostly 18+
+        },
+        states: {
+            labels: ['Uttar Pradesh', 'Maharashtra', 'Bihar', 'West Bengal', 'Karnataka', 'Rajasthan', 'Madhya Pradesh', 'Gujarat', 'Tamil Nadu', 'Andhra Pradesh'],
+            enrolment: [450000, 120000, 380000, 250000, 150000, 210000, 200000, 110000, 90000, 85000],
+            updates:   [150000, 480000, 120000, 220000, 350000, 180000, 160000, 280000, 310000, 240000] // Bio + Demo combined
+        },
+        trends: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            enrolment: [100, 105, 110, 108, 115, 120, 118, 122, 125, 120, 115, 110], // Normalized trends
+            updates: [150, 155, 160, 158, 165, 170, 175, 180, 185, 190, 188, 185]
+        }
+    };
+
+    // --- CHART CONFIGURATION & RENDERERS ---
+
+    // Global Chart Defaults
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#64748B';
+
+    // 1. Lifecycle Chart (Stacked Bar)
+    function renderLifecycleChart() {
+        const ctx = document.getElementById('lifecycleChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: REPORT_DATA.lifecycle.labels,
+                datasets: [
+                    {
+                        label: 'New Enrolments (df1)',
+                        data: REPORT_DATA.lifecycle.enrolment,
+                        backgroundColor: '#3B82F6', // Blue 500
+                        borderRadius: 4,
+                        stack: 'Stack 0',
+                    },
+                    {
+                        label: 'Biometric Updates (df3)',
+                        data: REPORT_DATA.lifecycle.biometric,
+                        backgroundColor: '#10B981', // Emerald 500
+                        borderRadius: 4,
+                        stack: 'Stack 0',
+                    },
+                    {
+                        label: 'Demographic Updates (API)',
+                        data: REPORT_DATA.lifecycle.demographic,
+                        backgroundColor: '#F59E0B', // Amber 500
+                        borderRadius: 4,
+                        stack: 'Stack 0',
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { 
+                        grid: { display: false },
+                        title: { display: true, text: 'Age Group' }
+                    },
+                    y: { 
+                        grid: { color: '#F1F5F9' },
+                        title: { display: true, text: 'Transaction Volume' },
+                        ticks: { callback: function(value) { return value / 1000 + 'k'; } }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                        padding: 12,
+                        cornerRadius: 8,
+                        titleFont: { size: 13, weight: '600' }
+                    },
+                    legend: { position: 'top', align: 'end' }
+                }
+            }
+        });
+    }
+
+    // 2. Mix Chart (Donut)
+    function renderMixChart() {
+        const ctx = document.getElementById('mixChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Enrolment', 'Biometric', 'Demographic'],
+                datasets: [{
+                    data: [
+                        REPORT_DATA.totalCounts.enrolment, 
+                        REPORT_DATA.totalCounts.biometric, 
+                        REPORT_DATA.totalCounts.demographic
+                    ],
+                    backgroundColor: ['#3B82F6', '#10B981', '#F59E0B'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '70%',
+                plugins: {
+                    legend: { display: false } // Custom legend in HTML
+                }
+            }
+        });
+    }
+
+    // 3. State Chart (Interactive Horizontal Bar)
+    let stateChartInstance = null; // Store instance to destroy/update
+
+    function renderStateChart(datasetType) {
+        const ctx = document.getElementById('stateChart').getContext('2d');
+        
+        // Determine Data based on Selection
+        let chartData, label, color;
+        if (datasetType === 'enrolment') {
+            chartData = REPORT_DATA.states.enrolment;
+            label = 'New Enrolments';
+            color = '#3B82F6';
+        } else if (datasetType === 'updates') {
+            chartData = REPORT_DATA.states.updates;
+            label = 'Total Updates';
+            color = '#F59E0B';
+        } else {
+            // Total
+            chartData = REPORT_DATA.states.enrolment.map((num, idx) => num + REPORT_DATA.states.updates[idx]);
+            label = 'Total Transactions';
+            color = '#6366F1'; // Indigo for total
+        }
+
+        if (stateChartInstance) {
+            stateChartInstance.destroy();
+        }
+
+        stateChartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: REPORT_DATA.states.labels,
+                datasets: [{
+                    label: label,
+                    data: chartData,
+                    backgroundColor: color,
+                    borderRadius: 4,
+                    barThickness: 20
+                }]
+            },
+            options: {
+                indexAxis: 'y', // Horizontal
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { 
+                        grid: { color: '#F1F5F9' },
+                        ticks: { callback: function(value) { return value / 1000 + 'k'; } }
+                    },
+                    y: { grid: { display: false } }
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(30, 41, 59, 0.9)',
+                        padding: 10
+                    }
+                }
+            }
+        });
+    }
+
+    // 4. Trend Chart (Line)
+    function renderTrendChart() {
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: REPORT_DATA.trends.labels,
+                datasets: [
+                    {
+                        label: 'Enrolments Trend',
+                        data: REPORT_DATA.trends.enrolment.map(x => x * 1000), // Scale up for demo
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    },
+                    {
+                        label: 'Updates Trend',
+                        data: REPORT_DATA.trends.updates.map(x => x * 1000), // Scale up for demo
+                        borderColor: '#F59E0B',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                scales: {
+                    y: {
+                        grid: { color: '#F1F5F9' },
+                        ticks: { callback: function(value) { return value / 1000 + 'k'; } }
+                    },
+                    x: { grid: { display: false } }
+                },
+                plugins: {
+                    legend: { position: 'top', align: 'end' }
+                }
+            }
+        });
+    }
+
+    // --- INTERACTION LOGIC ---
+
+    function updateStateChart(type, btnElement) {
+        // Visual feedback on buttons
+        document.querySelectorAll('#stateChart ~ div button, #btn-total, #btn-enrol, #btn-update').forEach(b => {
+            b.classList.remove('bg-white', 'shadow-sm', 'text-slate-800');
+            b.classList.add('text-slate-500');
+        });
+        btnElement.classList.remove('text-slate-500');
+        btnElement.classList.add('bg-white', 'shadow-sm', 'text-slate-800');
+
+        renderStateChart(type);
+    }
+
+    // --- INITIALIZATION ---
+    window.addEventListener('DOMContentLoaded', () => {
+        renderLifecycleChart();
+        renderMixChart();
+        renderStateChart('total'); // Default view
+        renderTrendChart();
+        
+        // Set default active button state manually for the first load
+        const defaultBtn = document.getElementById('btn-total');
+        if(defaultBtn) {
+            defaultBtn.classList.remove('text-slate-500');
+            defaultBtn.classList.add('bg-white', 'shadow-sm', 'text-slate-800');
+        }
+    });
+
+</script>
+</body> </html>

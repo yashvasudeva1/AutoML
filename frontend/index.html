@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoML - Professional Dataset Analysis Tool</title>
+  <meta name="description"
+    content="Upload, clean, and analyze your datasets with intelligent automation. Get ML model recommendations, data quality reports, and actionable insights in seconds." />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <!-- Plotly.js -->
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <!-- jsPDF & AutoTable for programmatic PDF generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="noise-overlay"></div>
+  <div class="global-grid-glow"></div>
+  <div class="global-grid-bg"></div>
+  <!-- ═══════════════════════════════════════════════
+       NAVIGATION BAR
+       ═══════════════════════════════════════════════ -->
+  <nav id="navbar" class="navbar">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo" id="nav-logo-link">
+        <div class="logo-icon">
+          <img src="assets/Logo.png" alt="AutoML logo" class="logo-image" />
+        </div>
+        <span class="logo-text">AutoML</span>
+      </a>
+
+      <div class="nav-links" id="nav-links-landing">
+        <a href="#about" class="nav-link">About</a>
+        <a href="#features" class="nav-link">Features</a>
+        <a href="#how-it-works" class="nav-link">How It Works</a>
+      </div>
+
+      <div class="nav-actions" id="nav-actions">
+        <button class="btn btn-ghost" id="btn-open-login">Log In</button>
+        <button class="btn btn-primary" id="btn-open-signup">Get Started</button>
+      </div>
+
+      <div class="nav-user hidden" id="nav-user">
+        <span class="nav-user-name" id="nav-user-name"></span>
+        <button class="btn btn-ghost btn-sm" id="btn-logout">Log Out</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════════
+       LANDING PAGE
+       ═══════════════════════════════════════════════ -->
+  <main id="page-landing" class="page active">
+    <!-- Hero -->
+    <section class="hero" id="hero">
+      <div class="hero-data-ambient" aria-hidden="true">
+        <div class="ambient-chart ambient-chart-line">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="ambient-chart ambient-chart-bars">
+          <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="ambient-chart ambient-chart-pulse"></div>
+      </div>
+      <div class="hero-glow"></div>
+      <div class="hero-grid-bg"></div>
+      <div class="hero-content">
+        <div class="hero-badge">
+          <i data-lucide="bar-chart" class="icon-sm"></i>
+          <span>Professional Data Analysis Tool</span>
+        </div>
+        <h1 class="hero-title">
+          Analyze your datasets<br />
+          <span class="gradient-text">instantly.</span>
+        </h1>
+        <p class="hero-description">
+          Upload a CSV to automatically clean your data, classify columns,
+          find correlations, and structure your information for modeling.
+        </p>
+        <div class="hero-cta">
+          <button class="btn btn-primary btn-lg" id="hero-cta-btn">
+            <i data-lucide="upload" class="icon-sm"></i>
+            Start Analyzing
+          </button>
+          <button class="btn btn-outline btn-lg" id="hero-learn-btn">
+            <i data-lucide="play" class="icon-sm"></i>
+            See How It Works
+          </button>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="hero-stat-value">2.5+</span>
+            <span class="hero-stat-label">Hours Saved</span>
+          </div>
+          <div class="hero-stat-divider"></div>
+          <div class="hero-stat">
+            <span class="hero-stat-value">10+</span>
+            <span class="hero-stat-label">ML Models</span>
+          </div>
+          <div class="hero-stat-divider"></div>
+          <div class="hero-stat">
+            <span class="hero-stat-value">&lt;5s</span>
+            <span class="hero-stat-label">Average Analysis</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About -->
+    <section class="about-section" id="about">
+      <div class="section-container">
+        <div class="section-header">
+          <span class="section-label">About</span>
+          <h2 class="section-title">Empowering Data-Driven Workflows</h2>
+          <p class="section-description" style="max-width: 800px; margin-bottom: 40px;">
+            At AutoML, our mission is to eliminate the friction between raw data and actionable intelligence. We believe
+            that professional data analysis shouldn't require hours of tedious boilerplate code, complex environment
+            configurations, or repetitive manual cleaning.
+          </p>
+          <div class="about-content"
+            style="text-align: left; max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px;">
+            <div>
+              <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">Why We
+                Built AutoML</h3>
+              <p style="font-size: 16px; color: var(--text-secondary); line-height: 1.7;">
+                The majority of a data professional's time is spent cleaning and exploring data. We built this platform
+                to automate the entire exploratory data analysis (EDA) pipeline. By intelligently detecting column
+                types, handling missing values, and generating comprehensive correlation networks, we free you to focus
+                on what truly matters: deriving value and building models.
+              </p>
+            </div>
+            <div>
+              <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);">Who It's
+                For</h3>
+              <p style="font-size: 16px; color: var(--text-secondary); line-height: 1.7;">
+                Whether you're a seasoned machine learning engineer looking to fast-track your initial diagnostics, or a
+                business leader needing to understand raw datasets without writing Python code, our unified dashboard
+                bridges the technical gap and provides transparent, prescriptive insights in seconds.
+              </p>
+            </div>
+          </div>
+          <div style="margin-top: 40px; display: flex; justify-content: center;">
+            <a href="https://github.com/yashvasudeva1/dataset_cleaner_analyzer" target="_blank" rel="noopener noreferrer" class="btn btn-outline" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;">
+              <i data-lucide="github"></i> View on GitHub
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features -->
+    <section class="features-section" id="features">
+      <div class="section-container">
+        <div class="section-header">
+          <span class="section-label">Features</span>
+          <h2 class="section-title">Everything you need<br />for dataset intelligence</h2>
+          <p class="section-description">
+            From raw CSV to production-ready insights, AutoML covers every step of the pipeline.
+          </p>
+        </div>
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon" style="--accent: #6366f1;">
+              <i data-lucide="scan-search"></i>
+            </div>
+            <h3>Smart Column Detection</h3>
+            <p>Automatically classifies columns as continuous, discrete, categorical, or datetime — no manual tagging.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon" style="--accent: #f59e0b;">
+              <i data-lucide="sparkles"></i>
+            </div>
+            <h3>Auto Cleaning</h3>
+            <p>Handles missing values, removes duplicates, caps outliers, and outputs a production-ready dataset.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon" style="--accent: #10b981;">
+              <i data-lucide="bar-chart-3"></i>
+            </div>
+            <h3>Deep Analysis</h3>
+            <p>Descriptive, diagnostic, and prescriptive analytics with correlation matrices and distribution insights.
+            </p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon" style="--accent: #ef4444;">
+              <i data-lucide="brain"></i>
+            </div>
+            <h3>ML Recommendations</h3>
+            <p>Get model suggestions based on your target variable type, dataset size, and feature engineering.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon" style="--accent: #8b5cf6;">
+              <i data-lucide="shield-check"></i>
+            </div>
+            <h3>Data Quality Scoring</h3>
+            <p>Comprehensive quality metrics including null counts, duplicate detection, and outlier analysis per
+              column.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon" style="--accent: #06b6d4;">
+              <i data-lucide="download"></i>
+            </div>
+            <h3>Export Ready</h3>
+            <p>Download cleaned datasets, trained pipelines, and full analysis reports with one click.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-section" id="how-it-works">
+      <div class="section-container">
+        <div class="section-header">
+          <span class="section-label">How It Works</span>
+          <h2 class="section-title">Three steps to<br />intelligent analysis</h2>
+        </div>
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-number">01</div>
+            <div class="step-content">
+              <h3>Upload Your Dataset</h3>
+              <p>Drag and drop your CSV file into the upload zone. We handle the rest.</p>
+            </div>
+          </div>
+          <div class="step-connector">
+            <i data-lucide="arrow-right"></i>
+          </div>
+          <div class="step-card">
+            <div class="step-number">02</div>
+            <div class="step-content">
+              <h3>Automatic Analysis</h3>
+              <p>Columns are classified, data is cleaned, correlations are mapped, and quality metrics are computed.</p>
+            </div>
+          </div>
+          <div class="step-connector">
+            <i data-lucide="arrow-right"></i>
+          </div>
+          <div class="step-card">
+            <div class="step-number">03</div>
+            <div class="step-content">
+              <h3>Get Insights & Models</h3>
+              <p>View prescriptive recommendations, model suggestions, and export your cleaned data.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="footer-inner">
+        <p class="footer-copy">&copy; 2026 AutoML Workspace.</p>
+      </div>
+    </footer>
+  </main>
+
+  <!-- ═══════════════════════════════════════════════
+       AUTH MODAL
+       ═══════════════════════════════════════════════ -->
+  <div class="modal-overlay hidden" id="auth-modal">
+    <div class="modal-card">
+      <button class="modal-close" id="modal-close">
+        <i data-lucide="x"></i>
+      </button>
+
+      <!-- Login Form -->
+      <div id="form-login" class="auth-form">
+        <div class="auth-header">
+          <h2>Welcome back</h2>
+          <p>Sign in to your account to continue</p>
+        </div>
+        <div id="google-login-button" style="margin-bottom:16px; display:flex; justify-content:center;"></div>
+        <div style="text-align:center; margin-bottom:16px; color:var(--text-muted); font-size:12px;">OR</div>
+        <form id="login-form" autocomplete="off">
+          <div class="input-group">
+            <label for="login-email">Email</label>
+            <div class="input-wrapper">
+              <i data-lucide="mail" class="input-icon"></i>
+              <input type="email" id="login-email" placeholder="you@example.com" required />
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="login-password">Password</label>
+            <div class="input-wrapper">
+              <i data-lucide="lock" class="input-icon"></i>
+              <input type="password" id="login-password" placeholder="••••••••" required />
+            </div>
+          </div>
+          <div class="auth-error hidden" id="login-error"></div>
+          <button type="submit" class="btn btn-primary btn-full" id="login-submit-btn">
+            <span>Sign In</span>
+            <i data-lucide="arrow-right" class="icon-sm"></i>
+          </button>
+        </form>
+        <p class="auth-switch">
+          Don't have an account?
+          <a href="#" id="switch-to-signup">Create one</a>
+        </p>
+      </div>
+
+      <!-- Signup Form -->
+      <div id="form-signup" class="auth-form hidden">
+        <div class="auth-header">
+          <h2>Create your account</h2>
+          <p>Start analyzing datasets in seconds</p>
+        </div>
+        <div id="google-signup-button" style="margin-bottom:16px; display:flex; justify-content:center;"></div>
+        <div style="text-align:center; margin-bottom:16px; color:var(--text-muted); font-size:12px;">OR</div>
+        <form id="signup-form" autocomplete="off">
+          <div class="input-group">
+            <label for="signup-name">Full Name</label>
+            <div class="input-wrapper">
+              <i data-lucide="user" class="input-icon"></i>
+              <input type="text" id="signup-name" placeholder="John Doe" required />
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="signup-email">Email</label>
+            <div class="input-wrapper">
+              <i data-lucide="mail" class="input-icon"></i>
+              <input type="email" id="signup-email" placeholder="you@example.com" required />
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="signup-password">Password</label>
+            <div class="input-wrapper">
+              <i data-lucide="lock" class="input-icon"></i>
+              <input type="password" id="signup-password" placeholder="Min. 6 characters" required minlength="6" />
+            </div>
+          </div>
+          <div class="auth-error hidden" id="signup-error"></div>
+          <button type="submit" class="btn btn-primary btn-full" id="signup-submit-btn">
+            <span>Create Account</span>
+            <i data-lucide="arrow-right" class="icon-sm"></i>
+          </button>
+        </form>
+        <p class="auth-switch">
+          Already have an account?
+          <a href="#" id="switch-to-login">Sign in</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════
+       DASHBOARD PAGE
+       ═══════════════════════════════════════════════ -->
+  <main id="page-dashboard" class="page hidden">
+    <div class="dashboard-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+          <i data-lucide="database" class="icon-sm"></i>
+          <span>Workspace</span>
+        </div>
+        <nav class="sidebar-nav">
+          <button class="sidebar-btn active" data-tab="upload" id="sidebar-upload">
+            <i data-lucide="upload-cloud"></i>
+            <span>Upload</span>
+          </button>
+          <button class="sidebar-btn disabled" data-tab="overview" id="sidebar-overview">
+            <i data-lucide="layout-dashboard"></i>
+            <span>Overview</span>
+          </button>
+          <button class="sidebar-btn disabled" data-tab="analysis" id="sidebar-analysis">
+            <i data-lucide="bar-chart-3"></i>
+            <span>Analysis</span>
+          </button>
+          <button class="sidebar-btn disabled" data-tab="models" id="sidebar-models">
+            <i data-lucide="brain"></i>
+            <span>Models</span>
+          </button>
+          <button class="sidebar-btn disabled" data-tab="chatbot" id="sidebar-chatbot">
+            <i data-lucide="messages-square"></i>
+            <span>Chatbot</span>
+          </button>
+          <button class="sidebar-btn" data-tab="profile" id="sidebar-profile">
+            <i data-lucide="user"></i>
+            <span>Profile</span>
+          </button>
+        </nav>
+        <div class="sidebar-footer">
+          <div class="sidebar-dataset-info hidden" id="sidebar-dataset-info">
+            <i data-lucide="file-spreadsheet" class="icon-sm"></i>
+            <div>
+              <div class="sidebar-filename" id="sidebar-filename"></div>
+              <div class="sidebar-filesize" id="sidebar-filesize"></div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Content area -->
+      <div class="dashboard-content">
+
+        <!-- UPLOAD TAB -->
+        <section class="tab-panel active" id="tab-upload">
+          <div class="tab-header">
+            <h2>Upload Dataset</h2>
+            <p>Drag and drop a CSV file or click to browse</p>
+          </div>
+          <div class="upload-zone" id="upload-zone">
+            <div class="upload-zone-inner">
+              <div class="upload-icon-ring">
+                <i data-lucide="cloud-upload"></i>
+              </div>
+              <h3>Drop your CSV file here</h3>
+              <p>or <span class="upload-browse">browse files</span></p>
+              <span class="upload-hint">Supports .csv files up to 50 MB</span>
+            </div>
+            <input type="file" id="file-input" accept=".csv" class="hidden" />
+          </div>
+          <div class="upload-progress hidden" id="upload-progress">
+            <div class="progress-info">
+              <i data-lucide="loader-2" class="spinner"></i>
+              <span id="upload-progress-text">Uploading and analyzing…</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" id="progress-fill"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- OVERVIEW TAB -->
+        <section class="tab-panel hidden" id="tab-overview">
+          <div class="tab-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <h2>Dataset Overview</h2>
+              <p id="overview-subtitle">Structure, quality, and classification</p>
+            </div>
+            <button class="btn btn-primary btn-sm btn-report" data-target="tab-overview">
+              <i data-lucide="download"></i> Download Report
+            </button>
+          </div>
+
+          <!-- Sub-tabs -->
+          <div class="sub-tabs">
+            <button class="overview-sub-tab sub-tab active" data-subtab="structure">Structure</button>
+            <button class="overview-sub-tab sub-tab" data-subtab="cleaning-report">Cleaning Report</button>
+            <button class="overview-sub-tab sub-tab" data-subtab="distribution">Distribution</button>
+          </div>
+
+          <div class="overview-sub-panel sub-panel active-sub" id="overview-sub-structure">
+            <!-- Metric cards -->
+            <div class="metric-grid" id="metric-cards"></div>
+
+            <!-- Type breakdown -->
+            <div class="card mt-24" id="type-breakdown-card">
+              <div class="card-header">
+                <h3>Column Type Breakdown</h3>
+              </div>
+              <div class="type-pills" id="type-pills"></div>
+            </div>
+
+            <!-- Column classification table -->
+            <div class="card mt-24" id="classification-card">
+              <div class="card-header">
+                <h3>Column Classification</h3>
+              </div>
+              <div class="table-wrapper" id="classification-table"></div>
+            </div>
+          </div>
+
+          <div class="overview-sub-panel sub-panel hidden" id="overview-sub-cleaning-report">
+            <!-- Data quality -->
+            <div class="card">
+              <div class="card-header">
+                <h3>Data Quality Metrics</h3>
+                <div style="display:flex; gap:8px;">
+                  <button class="btn btn-outline btn-sm hidden" id="btn-download-cleaned">
+                    <i data-lucide="download"></i> Download CSV
+                  </button>
+                  <button class="btn btn-primary btn-sm" id="btn-clean-dataset">
+                    <i data-lucide="wrench"></i> Clean Dataset
+                  </button>
+                </div>
+              </div>
+              <div class="table-wrapper" id="quality-table"></div>
+            </div>
+
+            <!-- Preview -->
+            <div class="card mt-24 hidden" id="preview-card">
+              <div class="card-header">
+                <h3>Cleaned Preview</h3>
+                <span class="badge" id="preview-badge">First 50 rows</span>
+              </div>
+              <div class="table-wrapper table-scroll" id="preview-table"></div>
+            </div>
+          </div>
+
+          <div class="overview-sub-panel sub-panel hidden" id="overview-sub-distribution">
+            <div class="two-col" id="distribution-grid">
+              <!-- Will be populated by JS -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ANALYSIS TAB -->
+        <section class="tab-panel hidden" id="tab-analysis">
+          <div class="tab-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <h2>Data Analysis</h2>
+              <p>Descriptive, diagnostic, and prescriptive insights</p>
+            </div>
+            <button class="btn btn-primary btn-sm btn-report" data-target="tab-analysis">
+              <i data-lucide="download"></i> Download Report
+            </button>
+          </div>
+
+          <!-- Sub-tabs -->
+          <div class="sub-tabs" id="analysis-sub-tabs">
+            <button class="analysis-sub-tab sub-tab active" data-subtab="descriptive">Descriptive</button>
+            <button class="analysis-sub-tab sub-tab" data-subtab="diagnostic">Diagnostic</button>
+            <button class="analysis-sub-tab sub-tab" data-subtab="prescriptive">Prescriptive</button>
+          </div>
+
+          <div class="analysis-sub-panel sub-panel active-sub" id="analysis-sub-descriptive">
+            <div class="card">
+              <div class="card-header">
+                <h3>Numerical Statistics</h3>
+              </div>
+              <div class="table-wrapper table-scroll" id="numerical-stats-table"></div>
+            </div>
+            <div class="card mt-24">
+              <div class="card-header">
+                <h3>Categorical Statistics</h3>
+              </div>
+              <div class="table-wrapper table-scroll" id="categorical-stats-table"></div>
+            </div>
+          </div>
+
+          <div class="analysis-sub-panel sub-panel hidden" id="analysis-sub-diagnostic">
+            <div class="card">
+              <div class="card-header">
+                <h3>Pearson Correlation</h3>
+              </div>
+              <div id="correlation-heatmap-plot" style="padding: 1rem; width: 100%; height: 400px;"></div>
+              <div class="table-wrapper table-scroll mt-24" id="correlation-matrix-table"></div>
+            </div>
+            <div class="two-col mt-24">
+              <div class="card">
+                <div class="card-header">
+                  <h3>Spearman Correlations</h3>
+                </div>
+                <div class="table-wrapper" id="spearman-table"></div>
+              </div>
+              <div class="card">
+                <div class="card-header">
+                  <h3>Kendall Correlations</h3>
+                </div>
+                <div class="table-wrapper" id="kendall-table"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="analysis-sub-panel sub-panel hidden" id="analysis-sub-prescriptive">
+            <div class="card">
+              <div class="card-header">
+                <h3>Numeric Feature Recommendations</h3>
+              </div>
+              <div class="table-wrapper table-scroll" id="numeric-prescriptive-table"></div>
+            </div>
+            <div class="card mt-24">
+              <div class="card-header">
+                <h3>Categorical Recommendations</h3>
+              </div>
+              <div class="table-wrapper table-scroll" id="categorical-prescriptive-table"></div>
+            </div>
+            <div class="two-col mt-24">
+              <div class="card">
+                <div class="card-header">
+                  <h3>Correlation-Based Removal</h3>
+                </div>
+                <div class="table-wrapper" id="correlation-prescriptive-table"></div>
+              </div>
+              <div class="card">
+                <div class="card-header">
+                  <h3>Dataset-Level Actions</h3>
+                </div>
+                <div class="table-wrapper" id="dataset-prescriptive-table"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- MODELS TAB -->
+        <section class="tab-panel hidden" id="tab-models">
+          <div class="tab-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
+            <div>
+              <h2>ML Model Recommendations</h2>
+              <p>Select a target variable to get recommendations</p>
+            </div>
+            <button class="btn btn-primary btn-sm btn-report" data-target="tab-models">
+              <i data-lucide="download"></i> Download Report
+            </button>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h3>Target Variable</h3>
+            </div>
+            <div class="select-wrapper">
+              <select id="target-select" class="select-input">
+                <option value="">Choose a column…</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="sub-tabs models-sub-tabs disabled" id="models-sub-tabs">
+            <button class="models-sub-tab sub-tab active" data-subtab="overview">Overview</button>
+            <button class="models-sub-tab sub-tab" data-subtab="baseline">Baseline</button>
+            <button class="models-sub-tab sub-tab" data-subtab="custom">Custom</button>
+          </div>
+
+          <div class="hidden" id="model-results">
+            <div class="models-sub-panel sub-panel active-sub" id="models-sub-overview">
+              <div class="card mt-24">
+                <div class="card-header">
+                  <h3>Detected Task Type</h3>
+                  <span class="badge badge-accent" id="task-type-badge"></span>
+                </div>
+              </div>
+              <div class="card mt-24">
+                <div class="card-header">
+                  <h3>Model-Ready Features</h3>
+                </div>
+                <div class="table-wrapper table-scroll" id="features-table"></div>
+              </div>
+              <div class="card mt-24">
+                <div class="card-header">
+                  <h3>Recommended Models</h3>
+                </div>
+                <div class="table-wrapper" id="recommendations-table"></div>
+              </div>
+            </div>
+
+            <div class="models-sub-panel sub-panel hidden" id="models-sub-baseline">
+              <div class="card mt-24">
+                <div class="card-header">
+                  <h3>Train Recommended Baseline</h3>
+                </div>
+                <div class="select-wrapper model-form-grid model-form-grid-baseline">
+                  <div>
+                    <label style="font-size:12px; color: var(--text-secondary); margin-bottom:6px; display:block;">Select X Columns</label>
+                    <div class="feature-picker" id="baseline-feature-list"></div>
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                      <button class="btn btn-ghost btn-sm" id="baseline-select-all" type="button">Select All</button>
+                      <button class="btn btn-ghost btn-sm" id="baseline-clear-all" type="button">Clear</button>
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+                    <button class="btn btn-primary" id="btn-train-baseline" type="button">
+                      <i data-lucide="play" class="icon-sm"></i> Train Baseline
+                    </button>
+                    <button class="btn btn-outline hidden" id="btn-download-pipeline" type="button">
+                      <i data-lucide="download" class="icon-sm"></i> Download Pipeline
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card mt-24 hidden" id="baseline-fit-card">
+                <div class="card-header">
+                  <h3>Model Fit Diagnosis</h3>
+                  <span class="badge" id="baseline-fit-status"></span>
+                </div>
+                <div style="padding: 18px 22px; color: var(--text-secondary);" id="baseline-fit-reason"></div>
+              </div>
+
+              <div class="card mt-24 hidden" id="baseline-train-test-card">
+                <div class="card-header">
+                  <h3>Train vs Test Comparison</h3>
+                </div>
+                <div class="table-wrapper" id="baseline-train-test-table"></div>
+              </div>
+
+              <div class="card mt-24 hidden" id="baseline-metrics-card">
+                <div class="card-header">
+                  <h3>Baseline Metrics</h3>
+                </div>
+                <div class="table-wrapper" id="baseline-metrics-table"></div>
+              </div>
+
+              <div class="card mt-24 hidden" id="baseline-model-details-card">
+                <div class="card-header">
+                  <h3>Model Details</h3>
+                </div>
+                <div class="table-wrapper" id="baseline-model-details-table"></div>
+              </div>
+
+              <div class="card mt-24 hidden" id="baseline-model-graph-card">
+                <div class="card-header">
+                  <h3>Model Graph</h3>
+                </div>
+                <div id="baseline-model-graph" style="padding: 1rem; width: 100%; height: 360px;"></div>
+              </div>
+
+              <div class="card mt-24 hidden" id="baseline-x-columns-card">
+                <div class="card-header">
+                  <h3>X Columns Used</h3>
+                </div>
+                <div class="table-wrapper" id="baseline-x-columns-table"></div>
+              </div>
+
+              <div class="card mt-24 hidden" id="baseline-report-card">
+                <div class="card-header">
+                  <h3>Classification Report</h3>
+                </div>
+                <div class="table-wrapper table-scroll" id="baseline-report-table"></div>
+              </div>
+            </div>
+
+            <div class="models-sub-panel sub-panel hidden" id="models-sub-custom">
+              <div class="card mt-24">
+                <div class="card-header">
+                  <h3>Custom Modeling</h3>
+                </div>
+                <div class="select-wrapper model-form-grid model-form-grid-custom">
+                  <div>
+                    <label style="font-size:12px; color: var(--text-secondary); margin-bottom:6px; display:block;">Select X Columns</label>
+                    <div class="feature-picker" id="custom-feature-list"></div>
+                    <div style="display:flex; gap:10px; margin-top:10px;">
+                      <button class="btn btn-ghost btn-sm" id="custom-select-all" type="button">Select All</button>
+                      <button class="btn btn-ghost btn-sm" id="custom-clear-all" type="button">Clear</button>
+                    </div>
+                  </div>
+                  <div class="model-form-two-col">
+                    <div>
+                      <label style="font-size:12px; color: var(--text-secondary); margin-bottom:6px; display:block;">Model</label>
+                      <select id="custom-model-select" class="select-input" style="max-width:100%;">
+                        <option value="">Select model…</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style="font-size:12px; color: var(--text-secondary); margin-bottom:6px; display:block;">Scaler</label>
+                      <select id="custom-scaler-select" class="select-input" style="max-width:100%;">
+                        <option value="StandardScaler">StandardScaler</option>
+                        <option value="MinMaxScaler">MinMaxScaler</option>
+                        <option value="RobustScaler">RobustScaler</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="model-form-two-col">
+                    <div>
+                      <label style="font-size:12px; color: var(--text-secondary); margin-bottom:6px; display:block;">Test Size (0.1-0.5)</label>
+                      <input id="custom-test-size" type="number" min="0.1" max="0.5" step="0.05" value="0.2" class="select-input" style="max-width:100%;" />
+                    </div>
+                    <div>
+                      <label style="font-size:12px; color: var(--text-secondary); margin-bottom:6px; display:block;">Random State</label>
+                      <input id="custom-random-state" type="number" min="1" value="42" class="select-input" style="max-width:100%;" />
+                    </div>
+                  </div>
+                  <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+                    <button class="btn btn-primary" id="btn-train-custom" type="button">
+                      <i data-lucide="sparkles" class="icon-sm"></i> Train Custom Model
+                    </button>
+                    <button class="btn btn-outline hidden" id="btn-download-custom-pipeline" type="button">
+                      <i data-lucide="download" class="icon-sm"></i> Download Pipeline
+                    </button>
+                    <button class="btn btn-outline btn-report" id="btn-custom-report" type="button" data-target="tab-models">
+                      <i data-lucide="file-down" class="icon-sm"></i> Download Report
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card mt-24 hidden" id="custom-fit-card">
+                <div class="card-header">
+                  <h3>Model Fit Diagnosis</h3>
+                  <span class="badge" id="custom-fit-status"></span>
+                </div>
+                <div style="padding: 18px 22px; color: var(--text-secondary);" id="custom-fit-reason"></div>
+              </div>
+
+              <div class="card mt-24 hidden" id="custom-train-test-card">
+                <div class="card-header">
+                  <h3>Train vs Test Comparison</h3>
+                </div>
+                <div class="table-wrapper" id="custom-train-test-table"></div>
+              </div>
+
+              <div class="card mt-24 hidden" id="custom-metrics-card">
+                <div class="card-header">
+                  <h3>Custom Model Metrics</h3>
+                </div>
+                <div class="table-wrapper" id="custom-metrics-table"></div>
+              </div>
+
+              <div class="card mt-24 hidden" id="custom-model-details-card">
+                <div class="card-header">
+                  <h3>Model Details</h3>
+                </div>
+                <div class="table-wrapper" id="custom-model-details-table"></div>
+              </div>
+
+              <div class="card mt-24 hidden" id="custom-model-graph-card">
+                <div class="card-header">
+                  <h3>Model Graph</h3>
+                </div>
+                <div id="custom-model-graph" style="padding: 1rem; width: 100%; height: 360px;"></div>
+              </div>
+
+              <div class="card mt-24 hidden" id="custom-x-columns-card">
+                <div class="card-header">
+                  <h3>X Columns Used</h3>
+                </div>
+                <div class="table-wrapper" id="custom-x-columns-table"></div>
+              </div>
+
+              <div class="card mt-24 hidden" id="custom-report-card">
+                <div class="card-header">
+                  <h3>Classification Report</h3>
+                </div>
+                <div class="table-wrapper table-scroll" id="custom-report-table"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CHATBOT TAB -->
+        <section class="tab-panel hidden" id="tab-chatbot">
+          <div class="tab-header">
+            <h2>Dataset Chatbot</h2>
+            <p>Ask questions about the uploaded dataset and get AI-powered answers.</p>
+          </div>
+
+          <div class="card">
+            <div class="card-header">
+              <h3>Chat About Your Dataset</h3>
+              <span class="badge" id="chatbot-dataset-badge">No dataset loaded</span>
+            </div>
+
+            <div class="chatbot-wrap">
+              <div class="chatbot-messages" id="chatbot-messages"></div>
+
+              <form id="chatbot-form" class="chatbot-form">
+                <textarea
+                  id="chatbot-input"
+                  class="chatbot-input"
+                  rows="3"
+                  placeholder="Ask something about this dataset..."
+                ></textarea>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <!-- PROFILE TAB -->
+        <section class="tab-panel hidden" id="tab-profile">
+          <div class="tab-header">
+            <h2>User Profile</h2>
+            <p>Manage your account and uploaded datasets.</p>
+          </div>
+          <div class="two-col profile-grid" style="gap:24px;">
+            <!-- Settings Card -->
+            <div class="card" style="padding:24px;">
+              <h3 style="margin-bottom:16px;">Update Details</h3>
+              <form id="profile-form">
+                <div class="input-group">
+                  <label>Name</label>
+                  <div class="input-wrapper">
+                    <i data-lucide="user" class="input-icon"></i>
+                    <input type="text" id="profile-name" required />
+                  </div>
+                </div>
+                <div class="input-group">
+                  <label>New Password</label>
+                  <div class="input-wrapper">
+                    <i data-lucide="key" class="input-icon"></i>
+                    <input type="password" id="profile-password" placeholder="Leave blank to ignore" />
+                  </div>
+                </div>
+                <button type="submit" class="btn btn-primary" id="btn-update-profile"
+                  style="width:100%; justify-content:center;">Update Profile</button>
+              </form>
+            </div>
+
+            <!-- Datasets Card -->
+            <div class="card" style="padding:24px;">
+              <h3 style="margin-bottom:16px;">My Uploaded Datasets</h3>
+              <div class="table-wrapper table-scroll">
+                <table style="width:100%; border-collapse: collapse; font-size:13px;" id="profile-datasets-table">
+                  <thead>
+                    <tr>
+                      <th style="padding:12px 18px; text-align:left; border-bottom:1px solid var(--border);">Filename
+                      </th>
+                      <th style="padding:12px 18px; text-align:left; border-bottom:1px solid var(--border);">Uploaded At
+                      </th>
+                      <th style="padding:12px 18px; text-align:left; border-bottom:1px solid var(--border);">Versions
+                      </th>
+                      <th style="padding:12px 18px; text-align:left; border-bottom:1px solid var(--border);">Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </div>
+  </main>
+
+  <script src="app.js?v=20260331-7"></script>
+</body>
+
+</html>
