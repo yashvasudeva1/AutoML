@@ -3,8 +3,6 @@ import numpy as np
 
 
 def infer_target_type(df, target_col):
-    series = df[target_col].dropna()
-
     if series.empty:
         return "Unknown"
 

@@ -921,6 +921,16 @@ function populateCustomModelOptions(targetType) {
   const select = $("#custom-model-select");
   if (!select) return;
 
+  const normalizedType = String(targetType || "").toLowerCase().trim();
+  let resolvedType = targetType;
+  if (normalizedType.includes("continuous") || normalizedType.includes("regression")) {
+    resolvedType = "Regression";
+  } else if (normalizedType.includes("multiclass") || normalizedType.includes("multi-class")) {
+    resolvedType = "Multiclass Classification";
+  } else if (normalizedType.includes("binary")) {
+    resolvedType = "Binary Classification";
+  }
+
   const optionsByType = {
     Regression: [
       "Linear Regression",
@@ -955,7 +965,7 @@ function populateCustomModelOptions(targetType) {
       "Naive Bayes",
     ],
   };
-  const options = optionsByType[targetType] || ["Random Forest Classifier"];
+  const options = optionsByType[resolvedType] || ["Random Forest Classifier"];
 
   select.innerHTML = '<option value="">Select model…</option>';
   options.forEach((opt) => {
