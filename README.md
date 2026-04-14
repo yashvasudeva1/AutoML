@@ -170,14 +170,6 @@ Render works well for this setup — simple CI/CD from GitHub, straightforward e
 
 ---
 
-## Before pushing to GitHub
-
-- Don't commit `.env` — it's in `.gitignore` but double-check
-- Rotate any API keys that were ever hardcoded anywhere
-- Keep `app.db` and anything in `uploads/` out of git
-
----
-
 ## Known rough edges / things to improve
 
 - Rate limiting on auth and chat endpoints would be good to add
