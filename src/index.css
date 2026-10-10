@@ -1,0 +1,57 @@
+@import "tailwindcss";
+
+/* Disable dark mode variant completely so prefers-color-scheme: dark never triggers */
+@variant dark (&:where(.dark-mode-permanently-disabled));
+
+@layer base {
+  :root {
+    --bg-main: #FAF9F5;
+    --bg-surface: #F0EEE6;
+    --bg-surface-hover: #E8E5DC;
+    --bg-card: #FFFFFF;
+    --text-primary: #1F1E1D;
+    --text-secondary: #73726C;
+    --text-muted: #9E9D96;
+    --border-subtle: #E5E2D9;
+    --border-strong: #D5D1C5;
+    --accent: #0284C7;
+    --accent-hover: #0369A1;
+    --accent-light: rgba(14, 165, 233, 0.1);
+    --accent-surface: #F0F9FF;
+  }
+
+  body {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-family: "Anthropic Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, .font-serif {
+    font-family: "Copernicus", "Tiempos Headline", "Iowan Old Style", "Apple Garamond", Baskerville, "Times New Roman", "Droid Serif", Times, "Source Serif 4", serif;
+  }
+
+  code, pre, .font-mono {
+    font-family: "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+}
+
+/* Custom scrollbars that feel quiet and unobtrusive */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(115, 114, 108, 0.25);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(115, 114, 108, 0.4);
+}

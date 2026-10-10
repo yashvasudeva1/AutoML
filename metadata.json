@@ -1,0 +1,6 @@
+{
+  "name": "AutoML and EDA Studio",
+  "description": "An automated exploratory data analysis and interactive machine learning pipeline platform. Upload CSV/Excel datasets, compute statistics and statistical tests, get generative AI summaries/conclusions, train models, and export PDF reports and Python pipelines.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
