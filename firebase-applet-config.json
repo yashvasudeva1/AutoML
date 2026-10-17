@@ -1,11 +1,11 @@
 {
-  "projectId": "your-firebase-project-id",
-  "appId": "your-firebase-app-id",
-  "apiKey": "your-firebase-api-key",
-  "authDomain": "your-firebase-project-id.firebaseapp.com",
-  "storageBucket": "your-firebase-project-id.firebasestorage.app",
-  "messagingSenderId": "your-messaging-sender-id",
+  "projectId": "gen-lang-client-0638827614",
+  "appId": "1:935109646611:web:ac7f91adb4a52ba149a2e6",
+  "apiKey": "AIzaSyACiwFTVZYJsPPod5Xqwuizo5TbPg1fNLw",
+  "authDomain": "gen-lang-client-0638827614.firebaseapp.com",
+  "storageBucket": "gen-lang-client-0638827614.firebasestorage.app",
+  "messagingSenderId": "935109646611",
   "measurementId": "",
-  "oAuthClientId": "your-oauth-client-id.apps.googleusercontent.com",
+  "oAuthClientId": "",
   "recaptchaSiteKey": ""
 }
