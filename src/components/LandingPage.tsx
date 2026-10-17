@@ -46,16 +46,46 @@ export default function LandingPage({ onLoginSuccess }: LandingPageProps) {
     try {
       const result = await signInWithGoogle();
       if (result.user && result.user.email) {
-        onLoginSuccess(result.user.email);
+        // Sync or register user in persistent DB
+        try {
+          await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: result.user.email,
+              name: result.user.displayName || result.user.email.split("@")[0],
+              password: `oauth_${result.user.uid}`
+            })
+          });
+        } catch {}
+
+        onLoginSuccess(
+          result.user.email,
+          result.user.email.toLowerCase() === "vasudevyash@gmail.com" ? "admin" : "user"
+        );
       }
     } catch (err: any) {
       console.error("Google OAuth error:", err);
-      const isBlocked = err.code === "auth/popup-blocked" || err.message?.includes("popup") || err.code === "auth/unauthorized-domain";
-      setErrorMsg(
-        isBlocked
-          ? "Google OAuth popup was blocked by browser iframe settings. You can sign in using email/password or use the Quick Demo login below."
-          : (err.message || "Google authentication failed. Please try again.")
-      );
+      if (
+        err.code === "auth/invalid-api-key" || 
+        err.code === "auth/api-key-not-valid" || 
+        err.message?.includes("API key") || 
+        err.message?.includes("not configured")
+      ) {
+        setErrorMsg(
+          "Google Sign-In requires your Firebase Web API Key. Please add your Firebase project settings to Render environment variables (VITE_FIREBASE_API_KEY) or sign in with your email/password."
+        );
+      } else if (err.code === "auth/unauthorized-domain") {
+        setErrorMsg(
+          "This domain is not authorized in Firebase. Please add this domain to Firebase Console > Authentication > Settings > Authorized Domains."
+        );
+      } else if (err.code === "auth/popup-blocked") {
+        setErrorMsg("Google Sign-In popup was blocked by browser settings. Please allow popups for this site.");
+      } else if (err.code === "auth/popup-closed-by-user") {
+        setErrorMsg("Sign-in was cancelled. Please try again.");
+      } else {
+        setErrorMsg(err.message || "Google authentication failed. Please try again or sign in with email/password.");
+      }
     } finally {
       setIsGoogleLoading(false);
     }

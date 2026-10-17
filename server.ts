@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import os from "os";
 import dotenv from "dotenv";
 import { GoogleGenAI, Type } from "@google/genai";
@@ -393,6 +394,39 @@ app.post("/api/auth/login", (req, res) => {
 
 app.get("/api/auth/users", (req, res) => {
   res.json({ users: db.getUsers() });
+});
+
+// Runtime Firebase Client Configuration Endpoint
+app.get("/api/auth/firebase-config", (req, res) => {
+  let fileConfig: any = {};
+  try {
+    const cfgPath = path.join(process.cwd(), "firebase-applet-config.json");
+    if (fs.existsSync(cfgPath)) {
+      fileConfig = JSON.parse(fs.readFileSync(cfgPath, "utf-8"));
+    }
+  } catch {}
+
+  const apiKey = process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || fileConfig.apiKey || "";
+  const authDomain = process.env.VITE_FIREBASE_AUTH_DOMAIN || process.env.FIREBASE_AUTH_DOMAIN || fileConfig.authDomain || "";
+  const projectId = process.env.VITE_FIREBASE_PROJECT_ID || process.env.FIREBASE_PROJECT_ID || fileConfig.projectId || "";
+  const storageBucket = process.env.VITE_FIREBASE_STORAGE_BUCKET || process.env.FIREBASE_STORAGE_BUCKET || fileConfig.storageBucket || "";
+  const messagingSenderId = process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || process.env.FIREBASE_MESSAGING_SENDER_ID || fileConfig.messagingSenderId || "";
+  const appId = process.env.VITE_FIREBASE_APP_ID || process.env.FIREBASE_APP_ID || fileConfig.appId || "";
+
+  const isConfigured = Boolean(
+    apiKey && !apiKey.includes("your-") &&
+    projectId && !projectId.includes("your-")
+  );
+
+  res.json({
+    apiKey,
+    authDomain,
+    projectId,
+    storageBucket,
+    messagingSenderId,
+    appId,
+    isConfigured
+  });
 });
 
 // Helper to compute 30-day daily token usage and estimated cost history

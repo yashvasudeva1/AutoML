@@ -1,16 +1,36 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp, getApps, getApp, deleteApp, FirebaseApp } from "firebase/app";
 import { 
   getAuth, 
   signInWithPopup, 
   GoogleAuthProvider, 
   onAuthStateChanged, 
   signOut as firebaseSignOut,
-  User 
+  User,
+  Auth
 } from "firebase/auth";
 import firebaseConfig from "../../firebase-applet-config.json";
 
-// Resolve config prioritizing Vite environment variables over config file
-const resolvedConfig = {
+export interface FirebaseAppConfig {
+  apiKey: string;
+  authDomain: string;
+  projectId: string;
+  storageBucket?: string;
+  messagingSenderId?: string;
+  appId?: string;
+}
+
+export function isConfigValid(cfg?: Partial<FirebaseAppConfig> | null): boolean {
+  if (!cfg) return false;
+  const key = cfg.apiKey;
+  const pid = cfg.projectId;
+  return Boolean(
+    key && typeof key === "string" && key.trim() !== "" && !key.includes("your-") &&
+    pid && typeof pid === "string" && pid.trim() !== "" && !pid.includes("your-")
+  );
+}
+
+// Build-time environment or config file fallback
+const staticConfig: FirebaseAppConfig = {
   apiKey: (typeof import.meta !== "undefined" && import.meta.env?.VITE_FIREBASE_API_KEY) || firebaseConfig.apiKey || "",
   authDomain: (typeof import.meta !== "undefined" && import.meta.env?.VITE_FIREBASE_AUTH_DOMAIN) || firebaseConfig.authDomain || "",
   projectId: (typeof import.meta !== "undefined" && import.meta.env?.VITE_FIREBASE_PROJECT_ID) || firebaseConfig.projectId || "",
@@ -19,20 +39,62 @@ const resolvedConfig = {
   appId: (typeof import.meta !== "undefined" && import.meta.env?.VITE_FIREBASE_APP_ID) || firebaseConfig.appId || "",
 };
 
-// Initialize Firebase App singleton
-const app = getApps().length > 0 ? getApp() : initializeApp(resolvedConfig);
-export const auth = getAuth(app);
+let activeApp: FirebaseApp | null = null;
+let activeAuth: Auth | null = null;
+
+export async function getOrInitAuth(): Promise<{ auth: Auth | null; isConfigured: boolean }> {
+  if (activeAuth && isConfigValid(activeApp?.options as any)) {
+    return { auth: activeAuth, isConfigured: true };
+  }
+
+  // 1. Check if static config is valid
+  if (isConfigValid(staticConfig)) {
+    try {
+      activeApp = getApps().length > 0 ? getApp() : initializeApp(staticConfig);
+      activeAuth = getAuth(activeApp);
+      return { auth: activeAuth, isConfigured: true };
+    } catch (err) {
+      console.warn("Failed initializing static Firebase app:", err);
+    }
+  }
+
+  // 2. Try fetching server runtime config
+  try {
+    const res = await fetch("/api/auth/firebase-config");
+    if (res.ok) {
+      const serverCfg = await res.json();
+      if (serverCfg.isConfigured && isConfigValid(serverCfg)) {
+        if (getApps().length > 0) {
+          try {
+            await deleteApp(getApp());
+          } catch {}
+        }
+        activeApp = initializeApp(serverCfg);
+        activeAuth = getAuth(activeApp);
+        return { auth: activeAuth, isConfigured: true };
+      }
+    }
+  } catch {}
+
+  return { auth: null, isConfigured: false };
+}
 
 const googleProvider = new GoogleAuthProvider();
 googleProvider.addScope("openid");
 googleProvider.addScope("https://www.googleapis.com/auth/userinfo.email");
 googleProvider.addScope("https://www.googleapis.com/auth/userinfo.profile");
 
-// In-memory token cache (never stored in localStorage as per security guidelines)
 let cachedAccessToken: string | null = null;
 let isSigningIn = false;
 
 export async function signInWithGoogle(): Promise<{ user: User; token: string | null }> {
+  const { auth, isConfigured } = await getOrInitAuth();
+  if (!isConfigured || !auth) {
+    throw new Error(
+      "Firebase Authentication is not configured yet. Please provide your Firebase Web API Key and Project ID to enable Google Sign-In."
+    );
+  }
+
   isSigningIn = true;
   try {
     const result = await signInWithPopup(auth, googleProvider);
@@ -46,7 +108,11 @@ export async function signInWithGoogle(): Promise<{ user: User; token: string | 
 
 export async function signOutGoogle(): Promise<void> {
   cachedAccessToken = null;
-  await firebaseSignOut(auth);
+  if (activeAuth) {
+    try {
+      await firebaseSignOut(activeAuth);
+    } catch {}
+  }
 }
 
 export function getCachedToken(): string | null {
@@ -56,12 +122,31 @@ export function getCachedToken(): string | null {
 export function subscribeToAuth(
   onUserChanged: (user: User | null, token: string | null) => void
 ) {
-  return onAuthStateChanged(auth, (user) => {
-    if (!user) {
-      cachedAccessToken = null;
-      onUserChanged(null, null);
+  if (activeAuth) {
+    return onAuthStateChanged(activeAuth, (user) => {
+      if (!user) {
+        cachedAccessToken = null;
+        onUserChanged(null, null);
+      } else {
+        onUserChanged(user, cachedAccessToken);
+      }
+    });
+  }
+
+  getOrInitAuth().then(({ auth }) => {
+    if (auth) {
+      onAuthStateChanged(auth, (user) => {
+        if (!user) {
+          cachedAccessToken = null;
+          onUserChanged(null, null);
+        } else {
+          onUserChanged(user, cachedAccessToken);
+        }
+      });
     } else {
-      onUserChanged(user, cachedAccessToken);
+      onUserChanged(null, null);
     }
   });
+
+  return () => {};
 }
