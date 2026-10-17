@@ -15,128 +15,26 @@ app.use(express.json({ limit: "50mb" }));
 const serverStartTime = Date.now();
 let requestCounter = 0;
 
-// Telemetry & Maintenance Store
-interface DatasetTelemetry {
-  id: string;
-  fileName: string;
-  rowCount: number;
-  colCount: number;
-  fileSizeBytes: number;
-  fileSizeFormatted: string;
-  tokensUsed: number;
-  promptTokens?: number;
-  candidateTokens?: number;
-  costUsd: number;
-  status: "Uploaded" | "Cleaned" | "Analyzed" | "Trained";
-  user: string;
-  timestamp: string;
-  latencyMs: number;
-  cleaningSteps?: string[];
-  qualityScoreBefore?: number;
-  qualityScoreAfter?: number;
-  memoryFootprintMB: number;
-}
+import { db, DatasetTelemetry, AuditLogEntry } from "./db";
 
-// Seed initial production telemetry records so the dashboard has rich historical perspective
-const datasetsTelemetryLog: DatasetTelemetry[] = [
-  {
-    id: "ds-hist-01",
-    fileName: "Housing_Market_Rates.csv",
-    rowCount: 20640,
-    colCount: 10,
-    fileSizeBytes: 1425000,
-    fileSizeFormatted: "1.42 MB",
-    tokensUsed: 1420,
-    costUsd: 0.00023,
-    status: "Cleaned",
-    user: "admin@gmail.com",
-    timestamp: new Date(Date.now() - 3600000 * 4).toISOString(),
-    latencyMs: 340,
-    cleaningSteps: ["Drop Null Values", "IQR Outlier Clamping (1.5x)", "StandardScaler Transform"],
-    qualityScoreBefore: 78,
-    qualityScoreAfter: 98,
-    memoryFootprintMB: 4.8
-  },
-  {
-    id: "ds-hist-02",
-    fileName: "Titanic_Survival_Ensemble.csv",
-    rowCount: 891,
-    colCount: 12,
-    fileSizeBytes: 61000,
-    fileSizeFormatted: "61 KB",
-    tokensUsed: 980,
-    costUsd: 0.00015,
-    status: "Cleaned",
-    user: "admin@gmail.com",
-    timestamp: new Date(Date.now() - 3600000 * 2).toISOString(),
-    latencyMs: 180,
-    cleaningSteps: ["Impute Age (Median)", "One-Hot Encode Embarked", "Extract Title Feature"],
-    qualityScoreBefore: 65,
-    qualityScoreAfter: 94,
-    memoryFootprintMB: 1.2
-  },
-  {
-    id: "ds-hist-03",
-    fileName: "Iris_Flowers_Benchmark.csv",
-    rowCount: 150,
-    colCount: 5,
-    fileSizeBytes: 4500,
-    fileSizeFormatted: "4.5 KB",
-    tokensUsed: 640,
-    costUsd: 0.00009,
-    status: "Trained",
-    user: "researcher@vertex.ai",
-    timestamp: new Date(Date.now() - 3600000 * 1).toISOString(),
-    latencyMs: 110,
-    cleaningSteps: ["Type Inferences Checked", "MinMax Scaling"],
-    qualityScoreBefore: 100,
-    qualityScoreAfter: 100,
-    memoryFootprintMB: 0.4
-  },
-  {
-    id: "ds-hist-04",
-    fileName: "Genomic_Expression_Matrix.csv",
-    rowCount: 54200,
-    colCount: 48,
-    fileSizeBytes: 8640000,
-    fileSizeFormatted: "8.64 MB",
-    tokensUsed: 2480,
-    promptTokens: 1680,
-    candidateTokens: 800,
-    costUsd: 0.00036,
-    status: "Analyzed",
-    user: "vasudevyash@gmail.com",
-    timestamp: new Date(Date.now() - 3600000 * 0.5).toISOString(),
-    latencyMs: 720,
-    cleaningSteps: ["Remove Zero-Variance Genes", "Quantile Normalization", "Batch Effect Correction"],
-    qualityScoreBefore: 72,
-    qualityScoreAfter: 96,
-    memoryFootprintMB: 12.4
-  },
-  {
-    id: "ds-hist-05",
-    fileName: "High_Frequency_Trading_Orderbook.csv",
-    rowCount: 125000,
-    colCount: 32,
-    fileSizeBytes: 18200000,
-    fileSizeFormatted: "18.2 MB",
-    tokensUsed: 1950,
-    promptTokens: 1320,
-    candidateTokens: 630,
-    costUsd: 0.00028,
-    status: "Cleaned",
-    user: "sarah.quant@hedgefund.com",
-    timestamp: new Date(Date.now() - 3600000 * 1.5).toISOString(),
-    latencyMs: 890,
-    cleaningSteps: ["Nanosecond Timestamp Alignment", "Micro-Price Imbalance Feature", "Z-Score Rolling Window"],
-    qualityScoreBefore: 81,
-    qualityScoreAfter: 99,
-    memoryFootprintMB: 24.6
+// Telemetry & Maintenance Store backed by persistent database
+const datasetsTelemetryLog: DatasetTelemetry[] = new Proxy(db.getTelemetry(), {
+  get(target, prop, receiver) {
+    if (prop === "unshift") {
+      return function (...items: DatasetTelemetry[]) {
+        for (const item of items) {
+          db.addTelemetry(item);
+        }
+        return target.length;
+      };
+    }
+    return Reflect.get(target, prop, receiver);
   }
-];
+});
 
-let totalPromptTokens = 6840;
-let totalCandidateTokens = 3290;
+const initialTokenStats = db.getTokenStats();
+let totalPromptTokens = initialTokenStats.totalPromptTokens;
+let totalCandidateTokens = initialTokenStats.totalCandidateTokens;
 let totalTokensUsed = totalPromptTokens + totalCandidateTokens;
 let totalCostUsd = ((totalPromptTokens * 0.075) / 1000000) + ((totalCandidateTokens * 0.30) / 1000000);
 
@@ -144,9 +42,9 @@ let totalCostUsd = ((totalPromptTokens * 0.075) / 1000000) + ((totalCandidateTok
 const edaCache = new Map<string, { data: any; tokensSaved: number; timestamp: number }>();
 const pipelineCache = new Map<string, { code: string; timestamp: number }>();
 const segmentCache = new Map<string, { explanation: string; timestamp: number }>();
-let totalTokensSaved = 18450;
-let cacheHitCount = 28;
-let totalAiRequests = 34;
+let totalTokensSaved = initialTokenStats.totalTokensSaved;
+let cacheHitCount = initialTokenStats.cacheHitCount;
+let totalAiRequests = initialTokenStats.totalAiRequests;
 
 // Helper to compress dataset schema into high-density statistical digest (reduces prompt tokens by 75-85%)
 function buildCompressedEdaPrompt(summary: any): string {
@@ -189,12 +87,19 @@ Features: ${columnsDigest}
 Salient Correlations: ${corrDigest}`;
 }
 
-const systemAuditLogs: Array<{ id: string; time: string; level: "INFO" | "WARN" | "SUCCESS"; message: string }> = [
-  { id: "log-1", time: new Date(Date.now() - 3600000 * 5).toLocaleTimeString(), level: "INFO", message: "Node.js Express runtime initialized on port 3000." },
-  { id: "log-2", time: new Date(Date.now() - 3600000 * 4).toLocaleTimeString(), level: "SUCCESS", message: "Google OAuth 2.0 Identity Client mounted with project: gen-lang-client-0638827614." },
-  { id: "log-3", time: new Date(Date.now() - 3600000 * 3).toLocaleTimeString(), level: "INFO", message: "Polars WASM streaming pipeline buffer set to 64MB." },
-  { id: "log-4", time: new Date(Date.now() - 3600000 * 2).toLocaleTimeString(), level: "SUCCESS", message: "Gemini 3.8 Flash high-efficiency engine active with semantic caching." }
-];
+const systemAuditLogs: AuditLogEntry[] = new Proxy(db.getAuditLogs(), {
+  get(target, prop, receiver) {
+    if (prop === "unshift") {
+      return function (...items: AuditLogEntry[]) {
+        for (const item of items) {
+          db.addAuditLog(item.level || "INFO", item.message || "");
+        }
+        return target.length;
+      };
+    }
+    return Reflect.get(target, prop, receiver);
+  }
+});
 
 // Helper to format bytes
 function formatBytes(bytes: number): string {
@@ -285,16 +190,17 @@ const SUPPORTED_HF_MODELS = [
   }
 ];
 
+const savedModelConfig = db.getModelConfig();
 let aiModelConfig: AIModelConfig = {
-  activeProvider: "gemini",
-  geminiModel: "gemini-3.8-flash",
-  hfModel: "meta-llama/Llama-3.3-70B-Instruct",
-  hfApiKey: process.env.HF_TOKEN || process.env.HUGGINGFACE_API_KEY || "",
+  activeProvider: savedModelConfig?.activeProvider || "gemini",
+  geminiModel: savedModelConfig?.geminiModel || "gemini-3.8-flash",
+  hfModel: savedModelConfig?.hfModel || "meta-llama/Llama-3.3-70B-Instruct",
+  hfApiKey: savedModelConfig?.hfApiKey || process.env.HF_TOKEN || process.env.HUGGINGFACE_API_KEY || "",
 };
 
 let hfRequestCount = 0;
 let hfTokensUsed = 0;
-let geminiRequestCount = 34;
+let geminiRequestCount = 0;
 
 // Helper to extract JSON from model responses that might contain markdown fences or surrounding commentary
 function extractJsonFromText(rawText: string): any {
@@ -451,6 +357,44 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// ==========================================
+// User Authentication Endpoints (Persistent DB)
+// ==========================================
+app.post("/api/auth/register", (req, res) => {
+  const { email, name, password } = req.body;
+  if (!email || !name || !password) {
+    return res.status(400).json({ error: "All fields are required." });
+  }
+  if (password.length < 6) {
+    return res.status(400).json({ error: "Password must be at least 6 characters long." });
+  }
+
+  const result = db.registerUser(email, name, password);
+  if (!result.success) {
+    return res.status(400).json({ error: result.error });
+  }
+
+  res.json({ success: true, user: result.user });
+});
+
+app.post("/api/auth/login", (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email and password are required." });
+  }
+
+  const result = db.authenticateUser(email, password);
+  if (!result.success) {
+    return res.status(401).json({ error: result.error });
+  }
+
+  res.json({ success: true, user: result.user });
+});
+
+app.get("/api/auth/users", (req, res) => {
+  res.json({ users: db.getUsers() });
+});
+
 // Helper to compute 30-day daily token usage and estimated cost history
 function get30DayUsageMetrics() {
   const days: Array<{
@@ -474,22 +418,9 @@ function get30DayUsageMetrics() {
     
     const dayLogs = datasetsTelemetryLog.filter(ds => ds.timestamp && ds.timestamp.slice(0, 10) === dayStr);
     
-    let pTokens = dayLogs.reduce((acc, l) => acc + (l.promptTokens || Math.round(l.tokensUsed * 0.65)), 0);
-    let cTokens = dayLogs.reduce((acc, l) => acc + (l.candidateTokens || Math.round(l.tokensUsed * 0.35)), 0);
-    let dsCount = dayLogs.length;
-
-    if (i > 0) {
-      const dayFactor = ((d.getDate() * 19 + d.getMonth() * 7) % 23) / 23;
-      const isWeekend = d.getDay() === 0 || d.getDay() === 6;
-      const baseTokens = isWeekend ? Math.round(750 + dayFactor * 850) : Math.round(2100 + dayFactor * 3200);
-      pTokens += Math.round(baseTokens * 0.68);
-      cTokens += Math.round(baseTokens * 0.32);
-      dsCount += isWeekend ? 1 : Math.round(2 + dayFactor * 3);
-    } else {
-      pTokens += Math.max(1450, totalPromptTokens % 2000);
-      cTokens += Math.max(750, totalCandidateTokens % 1200);
-      dsCount = Math.max(dsCount, 3);
-    }
+    const pTokens = dayLogs.reduce((acc, l) => acc + (l.promptTokens || Math.round(l.tokensUsed * 0.65)), 0);
+    const cTokens = dayLogs.reduce((acc, l) => acc + (l.candidateTokens || Math.round(l.tokensUsed * 0.35)), 0);
+    const dsCount = dayLogs.length;
 
     const tTokens = pTokens + cTokens;
     const dayCost = Number((((pTokens * 0.075) / 1000000) + ((cTokens * 0.30) / 1000000)).toFixed(5));
@@ -538,7 +469,7 @@ function getUserSessionsList(): UserSessionInfo[] {
   }>();
 
   for (const log of datasetsTelemetryLog) {
-    const email = log.user || "analyst@automl.studio";
+    const email = log.user || "analyst@workbench.io";
     if (!map.has(email)) {
       map.set(email, {
         email,
@@ -561,55 +492,18 @@ function getUserSessionsList(): UserSessionInfo[] {
     entry.totalCost += log.costUsd;
   }
 
-  const baselineUsers = [
-    {
-      email: "vasudevyash@gmail.com",
-      timestamps: [new Date().toISOString(), new Date(Date.now() - 15 * 60000).toISOString()],
-      datasets: ["Housing_Market_Rates.csv", "Customer_Churn_Data.csv", "Sales_Forecasting.csv"],
-      statuses: ["Cleaned", "Trained", "Analyzed"],
-      totalRows: 48500,
-      totalTokens: 6840,
-      totalCost: 0.00165
-    },
-    {
-      email: "data.lead@enterprise.ai",
-      timestamps: [new Date(Date.now() - 45 * 60000).toISOString()],
-      datasets: ["Healthcare_Patient_Metrics.csv", "Ensemble_Features.csv"],
-      statuses: ["Cleaned", "Analyzed"],
-      totalRows: 26800,
-      totalTokens: 3820,
-      totalCost: 0.00058
-    },
-    {
-      email: "sarah.quant@hedgefund.com",
-      timestamps: [new Date(Date.now() - 120 * 60000).toISOString()],
-      datasets: ["Equity_Tick_Series.csv"],
-      statuses: ["Trained"],
-      totalRows: 95000,
-      totalTokens: 2450,
-      totalCost: 0.00037
-    },
-    {
-      email: "ml.engineer@cloudscale.org",
-      timestamps: [new Date(Date.now() - 360 * 60000).toISOString()],
-      datasets: ["Server_Telemetry_Logs.csv"],
-      statuses: ["Uploaded"],
-      totalRows: 12400,
-      totalTokens: 1120,
-      totalCost: 0.00017
-    }
-  ];
-
-  for (const b of baselineUsers) {
-    if (!map.has(b.email)) {
-      map.set(b.email, {
-        email: b.email,
-        timestamps: b.timestamps,
-        datasets: b.datasets,
-        statuses: b.statuses,
-        totalRows: b.totalRows,
-        totalTokens: b.totalTokens,
-        totalCost: b.totalCost
+  // Include all real registered users from the persistent database
+  const registeredUsers = db.getUsers();
+  for (const u of registeredUsers) {
+    if (!map.has(u.email)) {
+      map.set(u.email, {
+        email: u.email,
+        timestamps: [u.lastLogin || u.createdAt],
+        datasets: [],
+        statuses: [],
+        totalRows: 0,
+        totalTokens: 0,
+        totalCost: 0
       });
     }
   }
@@ -725,14 +619,21 @@ app.get("/api/admin/metrics", (req, res) => {
       monthlyBudgetLimitUsd,
       budgetConsumptionPct,
       thirtyDayChart: thirtyDayHistory,
-      hourlyChart: [
-        { time: "00:00", tokens: 420, cost: 0.00006 },
-        { time: "04:00", tokens: 890, cost: 0.00013 },
-        { time: "08:00", tokens: 1640, cost: 0.00024 },
-        { time: "12:00", tokens: 2150, cost: 0.00031 },
-        { time: "16:00", tokens: 1820, cost: 0.00027 },
-        { time: "20:00", tokens: totalTokensUsed, cost: Number(totalCostUsd.toFixed(5)) }
-      ]
+      hourlyChart: (() => {
+        const slots = ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"];
+        const todayStr = new Date().toISOString().slice(0, 10);
+        return slots.map(timeStr => {
+          const hour = parseInt(timeStr.slice(0, 2), 10);
+          const hourLogs = datasetsTelemetryLog.filter(ds => {
+            if (!ds.timestamp || !ds.timestamp.startsWith(todayStr)) return false;
+            const logHour = new Date(ds.timestamp).getHours();
+            return logHour >= hour && logHour < hour + 4;
+          });
+          const tokens = hourLogs.reduce((acc, l) => acc + (l.tokensUsed || 0), 0);
+          const cost = Number(hourLogs.reduce((acc, l) => acc + (l.costUsd || 0), 0).toFixed(5));
+          return { time: timeStr, tokens, cost };
+        });
+      })()
     },
     tokenOptimization: {
       totalTokensSaved,
@@ -903,6 +804,14 @@ app.post("/api/admin/model-config", (req, res) => {
   if (geminiModel && typeof geminiModel === "string") {
     aiModelConfig.geminiModel = geminiModel.trim();
   }
+
+  // Persist updated configuration to database
+  db.saveModelConfig({
+    activeProvider: aiModelConfig.activeProvider,
+    geminiModel: aiModelConfig.geminiModel,
+    hfModel: aiModelConfig.hfModel,
+    hfApiKey: aiModelConfig.hfApiKey
+  });
 
   const modelLabel = aiModelConfig.activeProvider === "gemini" 
     ? "Google Gemini 3.8 Flash" 

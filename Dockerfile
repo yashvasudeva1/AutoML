@@ -37,6 +37,12 @@ COPY --from=builder /app/metadata.json ./metadata.json
 COPY --from=builder /app/firebase-applet-config.json ./firebase-applet-config.json
 COPY --from=builder /app/firebase-applet-config.example.json ./firebase-applet-config.example.json
 
+# Create persistent data directory with permissions for node user
+RUN mkdir -p /app/data && chown -R node:node /app/data
+
+# Persistent storage mount point for database
+VOLUME ["/app/data"]
+
 # Run as non-root user for security
 USER node
 

@@ -7,3 +7,6 @@ coverage/
 .env*
 !.env.example
 .vite/
+data/*.json
+!data/*.example.json
+data/*.tmp

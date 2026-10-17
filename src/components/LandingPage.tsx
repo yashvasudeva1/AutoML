@@ -74,7 +74,7 @@ const DEMO_ADMIN_PASSWORD = (typeof import.meta !== "undefined" && import.meta.e
     onLoginSuccess("analyst@workbench.io");
   };
 
-  const handleSignUp = (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
     setSuccessMsg(null);
@@ -94,32 +94,62 @@ const DEMO_ADMIN_PASSWORD = (typeof import.meta !== "undefined" && import.meta.e
       return;
     }
 
-    const saved = getSavedUsers();
-    if (saved.some(u => u.email.toLowerCase() === signUpEmail.toLowerCase())) {
-      setErrorMsg("An account with this email address already exists.");
-      return;
-    }
-
-    saved.push({
-      email: signUpEmail,
-      name: signUpName,
-      pass: signUpPassword
-    });
-
     try {
-      localStorage.setItem("automl_user_accounts", JSON.stringify(saved));
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: signUpEmail.trim(),
+          name: signUpName.trim(),
+          password: signUpPassword
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setErrorMsg(data.error || "Failed to register account.");
+        return;
+      }
+
+      // Also mirror to client localStorage
+      const saved = getSavedUsers();
+      if (!saved.some(u => u.email.toLowerCase() === signUpEmail.toLowerCase())) {
+        saved.push({
+          email: signUpEmail,
+          name: signUpName,
+          pass: signUpPassword
+        });
+        localStorage.setItem("automl_user_accounts", JSON.stringify(saved));
+      }
+
       setSuccessMsg("Account successfully registered! You can now log in.");
       setTimeout(() => {
         setLoginEmail(signUpEmail);
         setCurrentView("login");
         setSuccessMsg(null);
       }, 1000);
-    } catch (err) {
-      setErrorMsg("Failed to register user to client state.");
+    } catch {
+      // Offline fallback: save to localStorage
+      const saved = getSavedUsers();
+      if (saved.some(u => u.email.toLowerCase() === signUpEmail.toLowerCase())) {
+        setErrorMsg("An account with this email address already exists.");
+        return;
+      }
+      saved.push({
+        email: signUpEmail,
+        name: signUpName,
+        pass: signUpPassword
+      });
+      localStorage.setItem("automl_user_accounts", JSON.stringify(saved));
+      setSuccessMsg("Account registered locally. You can now log in.");
+      setTimeout(() => {
+        setLoginEmail(signUpEmail);
+        setCurrentView("login");
+        setSuccessMsg(null);
+      }, 1000);
     }
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg(null);
 
@@ -128,20 +158,49 @@ const DEMO_ADMIN_PASSWORD = (typeof import.meta !== "undefined" && import.meta.e
       return;
     }
 
-    // Explicit Admin credentials requested by user
+    // Demo admin bypass
     if (loginEmail.trim().toLowerCase() === "admin@gmail.com" && loginPassword === DEMO_ADMIN_PASSWORD) {
       onLoginSuccess("admin@gmail.com");
       return;
     }
 
-    const saved = getSavedUsers();
-    const match = saved.find(
-      u => u.email.toLowerCase() === loginEmail.toLowerCase() && u.pass === loginPassword
-    );
-
-    if (match) {
-      onLoginSuccess(match.email);
-    } else {
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: loginEmail.trim(),
+          password: loginPassword
+        })
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.user) {
+        onLoginSuccess(data.user.email);
+        return;
+      }
+      if (!res.ok) {
+        // Check local storage fallback before reporting error
+        const saved = getSavedUsers();
+        const match = saved.find(
+          u => u.email.toLowerCase() === loginEmail.toLowerCase() && u.pass === loginPassword
+        );
+        if (match) {
+          onLoginSuccess(match.email);
+          return;
+        }
+        setErrorMsg(data.error || "Invalid email address or password combination.");
+        return;
+      }
+    } catch {
+      // Offline fallback check
+      const saved = getSavedUsers();
+      const match = saved.find(
+        u => u.email.toLowerCase() === loginEmail.toLowerCase() && u.pass === loginPassword
+      );
+      if (match) {
+        onLoginSuccess(match.email);
+        return;
+      }
       setErrorMsg("Invalid email address or password combination.");
     }
   };

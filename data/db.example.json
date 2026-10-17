@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "users": [
+    {
+      "id": "usr-admin",
+      "email": "admin@gmail.com",
+      "name": "System Administrator",
+      "passwordHash": "9cd1fe809490dd9e79c6a2ae5456e8dbc3943451847e0b58863f8a0bae4fd3f65c603bdce2ec6dfe56a557c5933bf8340d414cf3d807bb2c5811e330a3749883",
+      "salt": "e5d293f8480fc26174896a2baa7bdea1",
+      "createdAt": "2026-10-17T05:26:23.954Z",
+      "lastLogin": "2026-10-17T05:26:23.955Z",
+      "role": "admin"
+    },
+    {
+      "id": "usr-analyst",
+      "email": "analyst@workbench.io",
+      "name": "Demo Analyst",
+      "passwordHash": "933691e3b099d142de48db463d16047338854fd601be19e8785b61cc75b51dae67ef248e7655dbc5bf31faa59112af9989089aa7abc7d04f12d420d7cb315188",
+      "salt": "6fbc0bc874ca9bad38a0e594da723b04",
+      "createdAt": "2026-10-17T05:26:23.955Z",
+      "lastLogin": "2026-10-17T05:26:23.955Z",
+      "role": "user"
+    }
+  ],
+  "telemetry": [],
+  "auditLogs": [],
+  "tokenStats": {
+    "totalPromptTokens": 0,
+    "totalCandidateTokens": 0,
+    "totalTokensSaved": 0,
+    "cacheHitCount": 0,
+    "totalAiRequests": 0
+  }
+}
