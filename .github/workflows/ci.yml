@@ -1,0 +1,44 @@
+name: CI & Deployment Health
+
+on:
+  push:
+    branches: [ "upgrade", "main" ]
+  pull_request:
+    branches: [ "upgrade", "main" ]
+  schedule:
+    # Keep free-tier deployment awake (runs every 14 minutes)
+    - cron: '*/14 * * * *'
+  workflow_dispatch:
+
+jobs:
+  test-build:
+    name: Lint & Build Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci || npm install
+
+      - name: Run Type Check & Lint
+        run: npm run lint
+
+      - name: Validate Production Build
+        run: npm run build
+
+  ping-health:
+    name: Keep-Alive Ping
+    # Only run scheduled pings on push to default branches or timer
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Live Endpoint
+        run: |
+          curl -s -f https://automl-wu2j.onrender.com/api/health || echo "Endpoint ping completed with non-zero response, server may be warming up."

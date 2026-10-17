@@ -16,7 +16,7 @@
 [![Firebase Auth](https://img.shields.io/badge/Firebase-Auth-ffca28?style=flat-square&logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 
-[Key Features](#-key-features) • [Architecture](#-architecture--workflow) • [Supported Models](#-supported-machine-learning-models) • [Getting Started](#-getting-started) • [Environment Variables](#-environment-configuration) • [Admin Suite](#-admin-health--telemetry-suite) • [Project Structure](#-project-structure)
+[Key Features](#-key-features) • [Architecture](#-architecture--workflow) • [Supported Models](#-supported-machine-learning-models) • [Getting Started](#-getting-started) • [Deployment](#-production-deployment-guide) • [Environment Variables](#-environment-configuration) • [Admin Suite](#-admin-health--telemetry-suite) • [Project Structure](#-project-structure)
 
 </div>
 
@@ -273,6 +273,44 @@ The application will start on `http://localhost:3000`.
 npm run build
 npm run start
 ```
+
+---
+
+## 🚢 Production Deployment Guide
+
+AutoML & EDA Studio is optimized for seamless deployment across modern container runtimes and PaaS cloud providers.
+
+### Option A: 1-Click Deploy to Render
+This repository includes a native [`render.yaml`](render.yaml) blueprint:
+1. In the [Render Dashboard](https://dashboard.render.com/), click **New +** > **Blueprint**.
+2. Connect your GitHub repository (`yashvasudeva1/AutoML`, branch `upgrade`).
+3. Render will automatically detect `render.yaml`, configure the service, and set build/start commands.
+4. Supply your secret environment variables (`GEMINI_API_KEY`, and optionally `HF_TOKEN`) in the Render dashboard.
+
+### Option B: Container Deployment with Docker
+A multi-stage, hardened production [`Dockerfile`](Dockerfile) is provided:
+```bash
+# 1. Build the production image
+docker build -t automl-studio:latest .
+
+# 2. Run the container
+docker run -d \
+  --name automl-studio \
+  -p 3000:3000 \
+  -e GEMINI_API_KEY="your-gemini-key" \
+  -e HF_TOKEN="your-hf-token" \
+  automl-studio:latest
+```
+
+### Option C: Google Cloud Run / Railway / Heroku
+The included [`Procfile`](Procfile) specifies `web: npm start`:
+- **Port Handling**: The server automatically binds to `0.0.0.0` and respects dynamic `$PORT` environment variables injected by cloud hosts (e.g. `PORT=8080` or `10000`).
+- **Health Checks**: Point your provider's health check probe to `GET /api/health`.
+
+### Option D: Automated CI/CD & Keep-Alive
+A GitHub Actions workflow is pre-configured in [`.github/workflows/ci.yml`](.github/workflows/ci.yml):
+- Runs TypeScript validation and production compilation on pushes and pull requests.
+- Periodically pings free-tier cloud instances every 14 minutes to prevent server hibernation.
 
 ---
 

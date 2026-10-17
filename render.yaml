@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: automl-studio
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: HF_TOKEN
+        sync: false
+      - key: APP_URL
+        sync: false
+      - key: VITE_ADMIN_PASSWORD
+        sync: false
