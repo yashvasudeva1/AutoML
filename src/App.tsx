@@ -89,16 +89,26 @@ export default function App() {
     }
   });
 
+  const [userRole, setUserRole] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem("automl_user_role");
+    } catch {
+      return null;
+    }
+  });
+
   // Admin View State
-  const isAdmin = userSession?.toLowerCase() === "admin@gmail.com";
+  const isAdmin = userRole === "admin" || userSession?.toLowerCase() === "vasudevyash@gmail.com";
   const [isAdminView, setIsAdminView] = useState<boolean>(false);
 
   const handleLogout = async () => {
     try {
       localStorage.removeItem("automl_active_session");
+      localStorage.removeItem("automl_user_role");
       await signOutGoogle();
     } catch {}
     setUserSession(null);
+    setUserRole(null);
     setIsAdminView(false);
     handleReset();
   };
@@ -475,10 +485,12 @@ export default function App() {
   };
 
   if (!userSession) {
-    return <LandingPage onLoginSuccess={(email) => {
+    return <LandingPage onLoginSuccess={(email, role = "user") => {
       setUserSession(email);
+      setUserRole(role);
       try {
         localStorage.setItem("automl_active_session", email);
+        localStorage.setItem("automl_user_role", role);
       } catch {}
     }} />;
   }
@@ -580,7 +592,7 @@ export default function App() {
             </button>
           </div>
 
-          {/* Admin System Health Button (Visible for admin@gmail.com) */}
+          {/* Admin System Health Button (Visible for Administrator) */}
           {isAdmin && (
             <div className="px-1">
               <button

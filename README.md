@@ -328,7 +328,7 @@ A GitHub Actions workflow is pre-configured in [`.github/workflows/ci.yml`](.git
 ## 🛠️ Admin Health & Telemetry Suite
 
 To access the Enterprise Admin Health Dashboard:
-1. Sign in with the administrator email: **`admin@gmail.com`**.
+1. Sign in with your administrator account (configured via `ADMIN_EMAIL` / `ADMIN_PASSWORD` or the primary admin credentials).
 2. Click the **Admin Health** link in the navigation header or user menu.
 3. Features available in the Admin suite:
    - **System Telemetry**: Process memory (`heapUsed`, `heapTotal`, `rss`), CPU load, Node platform details.

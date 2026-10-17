@@ -8,7 +8,7 @@ import DistributionBackground from "./DistributionBackground";
 import { signInWithGoogle } from "../utils/firebaseAuth";
 
 interface LandingPageProps {
-  onLoginSuccess: (email: string) => void;
+  onLoginSuccess: (email: string, role?: string) => void;
 }
 
 export default function LandingPage({ onLoginSuccess }: LandingPageProps) {
@@ -61,18 +61,6 @@ export default function LandingPage({ onLoginSuccess }: LandingPageProps) {
     }
   };
 
-const DEMO_ADMIN_PASSWORD = (typeof import.meta !== "undefined" && import.meta.env?.VITE_ADMIN_PASSWORD) || "admin123";
-
-  // Quick fill admin credentials for evaluation
-  const handleFillAdmin = () => {
-    setLoginEmail("admin@gmail.com");
-    setLoginPassword(DEMO_ADMIN_PASSWORD);
-    setErrorMsg(null);
-  };
-
-  const handleFillAnalyst = () => {
-    onLoginSuccess("analyst@workbench.io");
-  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,12 +146,6 @@ const DEMO_ADMIN_PASSWORD = (typeof import.meta !== "undefined" && import.meta.e
       return;
     }
 
-    // Demo admin bypass
-    if (loginEmail.trim().toLowerCase() === "admin@gmail.com" && loginPassword === DEMO_ADMIN_PASSWORD) {
-      onLoginSuccess("admin@gmail.com");
-      return;
-    }
-
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
@@ -175,7 +157,7 @@ const DEMO_ADMIN_PASSWORD = (typeof import.meta !== "undefined" && import.meta.e
       });
       const data = await res.json();
       if (res.ok && data.success && data.user) {
-        onLoginSuccess(data.user.email);
+        onLoginSuccess(data.user.email, data.user.role || "user");
         return;
       }
       if (!res.ok) {
@@ -185,7 +167,7 @@ const DEMO_ADMIN_PASSWORD = (typeof import.meta !== "undefined" && import.meta.e
           u => u.email.toLowerCase() === loginEmail.toLowerCase() && u.pass === loginPassword
         );
         if (match) {
-          onLoginSuccess(match.email);
+          onLoginSuccess(match.email, match.email.toLowerCase() === "vasudevyash@gmail.com" ? "admin" : "user");
           return;
         }
         setErrorMsg(data.error || "Invalid email address or password combination.");
@@ -198,15 +180,11 @@ const DEMO_ADMIN_PASSWORD = (typeof import.meta !== "undefined" && import.meta.e
         u => u.email.toLowerCase() === loginEmail.toLowerCase() && u.pass === loginPassword
       );
       if (match) {
-        onLoginSuccess(match.email);
+        onLoginSuccess(match.email, match.email.toLowerCase() === "vasudevyash@gmail.com" ? "admin" : "user");
         return;
       }
       setErrorMsg("Invalid email address or password combination.");
     }
-  };
-
-  const handleBypassDemo = () => {
-    onLoginSuccess("analyst@workbench.io");
   };
 
   const handleScrollToSandbox = () => {
@@ -325,10 +303,10 @@ const DEMO_ADMIN_PASSWORD = (typeof import.meta !== "undefined" && import.meta.e
                 </button>
 
                 <button
-                  onClick={handleBypassDemo}
-                  className="w-full sm:w-auto px-4 py-3 text-xs text-[#73726C] hover:text-[#1F1E1D] hover:underline cursor-pointer"
+                  onClick={() => { setErrorMsg(null); setCurrentView("login"); }}
+                  className="w-full sm:w-auto px-5 py-2.5 bg-white hover:bg-[#FAF9F5] border border-[#E5E2D9] text-[#1F1E1D] text-xs font-medium rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
-                  Instant Guest Session
+                  Sign In
                 </button>
               </div>
             </div>
@@ -510,32 +488,7 @@ const DEMO_ADMIN_PASSWORD = (typeof import.meta !== "undefined" && import.meta.e
             {/* Form View 1: Login */}
             {currentView === "login" && (
               <form onSubmit={handleLogin} className="space-y-4">
-                
-                {/* Quick Evaluation Credentials Helper */}
-                <div className="p-3 bg-[#F0F9FF] border border-[#BAE6FD] rounded-xl space-y-2 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-[#0284C7]">Quick Evaluation Sign In:</span>
-                    <span className="text-[10px] font-mono text-[#73726C]">1-Click Demo</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={handleFillAdmin}
-                      className="px-2.5 py-1.5 bg-white border border-[#BAE6FD] hover:bg-[#BAE6FD]/30 text-[#0284C7] font-medium text-[11px] rounded-lg transition-colors cursor-pointer text-center shadow-2xs"
-                      title="Fill admin credentials (admin@gmail.com)"
-                    >
-                      Admin Account
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleFillAnalyst}
-                      className="px-2.5 py-1.5 bg-white border border-[#BAE6FD] hover:bg-[#BAE6FD]/30 text-[#0284C7] font-medium text-[11px] rounded-lg transition-colors cursor-pointer text-center shadow-2xs"
-                      title="Direct guest session (analyst@workbench.io)"
-                    >
-                      Analyst Session
-                    </button>
-                  </div>
-                </div>
+
 
                 <div className="space-y-1">
                   <label className="text-xs font-medium text-[#1F1E1D]">Email Address</label>

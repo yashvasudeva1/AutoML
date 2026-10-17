@@ -76,6 +76,9 @@ export function verifyPassword(password: string, hash: string, salt: string): bo
   return check === hash;
 }
 
+export const DEFAULT_ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "vasudevyash@gmail.com").trim().toLowerCase();
+export const DEFAULT_ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.VITE_ADMIN_PASSWORD || "Automlp@ss$2026";
+
 class PersistentDatabase {
   private dataDir: string;
   private dbPath: string;
@@ -85,6 +88,46 @@ class PersistentDatabase {
     this.dataDir = process.env.DATA_DIR || path.join(process.cwd(), "data");
     this.dbPath = process.env.DB_PATH || path.join(this.dataDir, "db.json");
     this.db = this.init();
+    this.syncAdminAccount();
+  }
+
+  public syncAdminAccount(email = DEFAULT_ADMIN_EMAIL, password = DEFAULT_ADMIN_PASSWORD): void {
+    const normEmail = email.trim().toLowerCase();
+    let admin = this.db.users.find(
+      u => u.role === "admin" || u.id === "usr-admin" || u.email.toLowerCase() === "admin@gmail.com" || u.email.toLowerCase() === normEmail
+    );
+
+    if (!admin) {
+      const { hash, salt } = hashPassword(password);
+      this.db.users.push({
+        id: "usr-admin",
+        email: normEmail,
+        name: "System Administrator",
+        passwordHash: hash,
+        salt,
+        createdAt: new Date().toISOString(),
+        lastLogin: new Date().toISOString(),
+        role: "admin"
+      });
+      this.persist(this.db);
+    } else {
+      let changed = false;
+      if (admin.email.toLowerCase() !== normEmail) {
+        admin.email = normEmail;
+        admin.role = "admin";
+        changed = true;
+      }
+      if (password) {
+        const { hash, salt } = hashPassword(password);
+        admin.passwordHash = hash;
+        admin.salt = salt;
+        admin.role = "admin";
+        changed = true;
+      }
+      if (changed) {
+        this.persist(this.db);
+      }
+    }
   }
 
   private init(): DatabaseSchema {
@@ -105,8 +148,7 @@ class PersistentDatabase {
     }
 
     // Initial clean database state: Demo accounts enabled, telemetry completely empty
-    const adminPassword = process.env.VITE_ADMIN_PASSWORD || "admin123";
-    const adminHash = hashPassword(adminPassword);
+    const adminHash = hashPassword(DEFAULT_ADMIN_PASSWORD);
     const analystHash = hashPassword("analyst123");
 
     const initial: DatabaseSchema = {
@@ -114,7 +156,7 @@ class PersistentDatabase {
       users: [
         {
           id: "usr-admin",
-          email: "admin@gmail.com",
+          email: DEFAULT_ADMIN_EMAIL,
           name: "System Administrator",
           passwordHash: adminHash.hash,
           salt: adminHash.salt,
@@ -184,7 +226,7 @@ class PersistentDatabase {
       salt: salt,
       createdAt: new Date().toISOString(),
       lastLogin: new Date().toISOString(),
-      role: normEmail === "admin@gmail.com" ? "admin" : "user"
+      role: normEmail === DEFAULT_ADMIN_EMAIL.toLowerCase() ? "admin" : "user"
     };
 
     this.db.users.push(newUser);
