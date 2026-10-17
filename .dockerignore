@@ -12,3 +12,6 @@ yarn-debug.log*
 yarn-error.log*
 .DS_Store
 Thumbs.db
+data/*.json
+!data/*.example.json
+data/*.tmp
