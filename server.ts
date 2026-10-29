@@ -1913,9 +1913,24 @@ async function setupServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on http://0.0.0.0:${PORT} (${isProd ? "production" : "development"})`);
-  });
+  const startListening = (port: number) => {
+    const server = app.listen(port, "0.0.0.0", () => {
+      console.log(`Server running on http://0.0.0.0:${port} (${isProd ? "production" : "development"})`);
+      console.log(`Local access URL: http://localhost:${port}`);
+    });
+
+    server.on("error", (err: any) => {
+      if (err.code === "EADDRINUSE") {
+        const nextPort = port + 2;
+        console.warn(`Port ${port} is currently in use. Falling back to port ${nextPort}...`);
+        startListening(nextPort);
+      } else {
+        console.error("Server listen error:", err);
+      }
+    });
+  };
+
+  startListening(PORT);
 }
 
 setupServer();
